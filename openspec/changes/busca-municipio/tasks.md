@@ -14,7 +14,7 @@
 ## 3. Tela
 
 - [x] 3.1 [FRONT] `CensoApiService.buscarMunicipios()` e `.municipio()`; verificar com teste do item 3.5 — commit `feat(frontend): servico de municipios`
-- [ ] 3.2 [FRONT] `MunicipioAutocompleteComponent` (D5) com loading, "Nenhum município encontrado", emissão de `selecionado`; verificar manualmente digitando `bom jesus` — commit `feat(frontend): autocomplete de municipios`
+- [x] 3.2 [FRONT] `MunicipioAutocompleteComponent` (D5) com loading, "Nenhum município encontrado", emissão de `selecionado`; verificar manualmente digitando `bom jesus` — commit `feat(frontend): autocomplete de municipios`
 - [ ] 3.3 [FRONT] `IndicadorCardComponent` (shared) + `MunicipioResumoComponent` (D7/D8) — commit `feat(frontend): painel de indicadores do municipio`
 - [ ] 3.4 [FRONT] `MunicipioStore` (signals + `rxResource`, provida na rota) e `BuscaMunicipioPage` com rota `/municipios/:codigo?`, estados carregando/não encontrado/erro + "Tentar novamente" (D6); verificar deep link e F5 — commit `feat(frontend): tela de busca de municipios`
 - [ ] 3.5 [QA] Testes Vitest simples: serviço monta URL/params corretos (`HttpTestingController`); `MunicipioResumoComponent` renderiza população formatada `11.451.999`, `—` para densidade nula e oculta "sem classificação" quando 0; verificar `npm test` — commit `test(frontend): tela de municipios`
