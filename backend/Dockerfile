@@ -22,10 +22,13 @@ COPY backend ./
 COPY docs/api/openapi.yaml /var/www/docs/api/openapi.yaml
 COPY censo.sqlite ./database/censo.sqlite
 
+# censo:preparar gera o read model na cópia e falha o build se os totais do IBGE não baterem.
 RUN cp .env.example .env \
     && php artisan key:generate --force \
+    && php artisan censo:preparar \
     && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
+    && chown root:www-data database/censo.sqlite \
     && chmod 0444 database/censo.sqlite
 
 EXPOSE 80
