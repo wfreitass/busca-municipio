@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Censo;
+
+use Illuminate\Support\Str;
+
+final class NormalizadorTexto
+{
+    public static function normalizar(string $texto): string
+    {
+        $texto = Str::ascii($texto);
+        $texto = strtolower(str_replace(["'", '’', '-'], ' ', $texto));
+
+        return trim((string) preg_replace('/\s+/', ' ', $texto));
+    }
+}

@@ -8,7 +8,7 @@
 ## 2. Utilitários de domínio
 
 - [x] 2.1 [BACK] `App\Censo\SiglasUf` (mapa estático 27 UFs, `sigla(cd)` e `codigo(sigla)` case-insensitive) — commit `feat(backend): mapa de siglas das ufs`
-- [ ] 2.2 [BACK] `App\Censo\NormalizadorTexto::normalizar()` conforme design D3.4 — commit `feat(backend): normalizador de nomes para busca`
+- [x] 2.2 [BACK] `App\Censo\NormalizadorTexto::normalizar()` conforme design D3.4 — commit `feat(backend): normalizador de nomes para busca`
 - [ ] 2.3 [QA] Testes unit: 27 siglas únicas; `SP`/`sp` → `35`; `Olho-d'Água das Flores` → `olho d agua das flores`; `  São   Paulo ` → `sao paulo`; verificar `php artisan test --testsuite=Unit` — commit `test(backend): siglas e normalizador`
 
 ## 3. Preparação do read model
