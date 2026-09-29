@@ -1,0 +1,23 @@
+:host { display: block; }
+
+.tabela {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px 12px 0 0;
+  overflow-x: auto;
+  position: relative;
+}
+
+.carregando { left: 0; position: absolute; right: 0; top: 0; z-index: 2; }
+table { width: 100%; }
+.esmaecida { opacity: 0.55; transition: opacity 150ms; }
+.numero { font-variant-numeric: tabular-nums; text-align: right; }
+td.numero:first-child, th.numero:first-child { text-align: left; }
+.vazia { padding: 1.5rem; text-align: center; }
+a { color: var(--mat-sys-primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+mat-paginator {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 0 0 12px 12px;
+  border-top: 0;
+}

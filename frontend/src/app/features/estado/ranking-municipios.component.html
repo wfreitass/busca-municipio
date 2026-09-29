@@ -1,0 +1,50 @@
+<div class="tabela">
+  @if (carregando()) {
+    <mat-progress-bar class="carregando" mode="indeterminate" aria-label="Carregando ranking" />
+  }
+
+  <table mat-table [dataSource]="itens()" [class.esmaecida]="carregando()">
+    <caption class="cdk-visually-hidden">Municípios ranqueados por densidade demográfica, do mais denso para o menos denso</caption>
+
+    <ng-container matColumnDef="posicao">
+      <th mat-header-cell *matHeaderCellDef>Posição</th>
+      <td mat-cell *matCellDef="let m" class="numero">{{ m.posicao }}º</td>
+    </ng-container>
+
+    <ng-container matColumnDef="nome">
+      <th mat-header-cell *matHeaderCellDef>Município</th>
+      <td mat-cell *matCellDef="let m"><a [routerLink]="['/municipios', m.codigo]">{{ m.nome }}</a></td>
+    </ng-container>
+
+    <ng-container matColumnDef="populacao">
+      <th mat-header-cell *matHeaderCellDef class="numero">População</th>
+      <td mat-cell *matCellDef="let m" class="numero">{{ m.populacao | numeroOuTraco }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="area">
+      <th mat-header-cell *matHeaderCellDef class="numero">Área (km²)</th>
+      <td mat-cell *matCellDef="let m" class="numero">{{ m.area_km2 | numeroOuTraco: '1.2-2' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="densidade">
+      <th mat-header-cell *matHeaderCellDef class="numero">Densidade (hab/km²)</th>
+      <td mat-cell *matCellDef="let m" class="numero">{{ m.densidade_hab_km2 | numeroOuTraco: '1.2-2' }}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="colunas; sticky: true"></tr>
+    <tr mat-row *matRowDef="let linha; columns: colunas"></tr>
+    <tr class="mat-row" *matNoDataRow>
+      <td class="vazia" [attr.colspan]="colunas.length">Página vazia. Volte para uma página anterior.</td>
+    </tr>
+  </table>
+</div>
+
+<mat-paginator
+  [length]="meta().total"
+  [pageIndex]="meta().pagina - 1"
+  [pageSize]="meta().por_pagina"
+  [pageSizeOptions]="[25, 50, 100]"
+  [showFirstLastButtons]="true"
+  (page)="aoPaginar($event)"
+  aria-label="Paginação do ranking"
+/>
