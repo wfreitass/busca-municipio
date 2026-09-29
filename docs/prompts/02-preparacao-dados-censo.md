@@ -52,6 +52,8 @@ Regras que NÃO podem ser violadas (cada uma é cenário de teste):
 - densidade = pop/area só se area > 0, senão NULL. Densidade da UF = SUM(pop)/SUM(area) — NUNCA média.
 - nm_busca via NormalizadorTexto (Str::ascii, minúsculas, ' ’ - → espaço, colapsa espaços, trim).
 - sigla_uf via SiglasUf (mapa estático 27 UFs). Registro extra → consultavel = 0 conforme exploracao.md.
+- Tabela virtual municipio_busca USING fts5(cd_mun UNINDEXED, nm_busca, tokenize='trigram') só com consultáveis
+  (a imagem php:8.3-apache tem SQLite 3.46.1 — trigram disponível).
 - posicao_densidade_uf com ROW_NUMBER() + UPDATE … FROM (não subconsulta correlacionada).
 - Tudo em transação, DROP/CREATE para idempotência. Comando `censo:preparar {--database=}`.
 - Validação final: exit code ≠ 0 se população ≠ 203080756 ou UFs ≠ 27; imprime os totais.

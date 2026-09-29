@@ -41,6 +41,18 @@ A busca MUST ser insensível a caixa, acentos, apóstrofos e hífens, e MUST con
 - **WHEN** o cliente chama `GET /api/municipios?q=olho d agua`
 - **THEN** os resultados incluem municípios cujo nome é `Alta Floresta D'Oeste - RO`
 
+#### Scenario: Palavras em qualquer ordem
+- **WHEN** o cliente chama `GET /api/municipios?q=paulo sao`
+- **THEN** `São Paulo - SP` está entre os resultados
+
+#### Scenario: Termo de duas letras
+- **WHEN** o cliente chama `GET /api/municipios?q=sp`
+- **THEN** recebe `200` com municípios cujo nome normalizado contém `sp` (ex.: `Espigão D'Oeste - RO`)
+
+#### Scenario: Sintaxe de busca digitada pelo usuário
+- **WHEN** o cliente chama `GET /api/municipios?q=sao* OR -paulo`
+- **THEN** recebe `200` (nunca `500`), tratando o texto como palavras comuns
+
 #### Scenario: Termo curto demais
 - **WHEN** o cliente chama `GET /api/municipios?q=s`
 - **THEN** recebe `422` com o erro de validação no campo `q`

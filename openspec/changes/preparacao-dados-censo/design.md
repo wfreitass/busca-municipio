@@ -61,6 +61,11 @@ CREATE TABLE municipio_resumo (
 CREATE INDEX ix_mr_busca   ON municipio_resumo(consultavel, nm_busca);
 CREATE INDEX ix_mr_ranking ON municipio_resumo(cd_uf, posicao_densidade_uf);
 
+-- Índice textual (busca do autocomplete; ver busca-municipio design D1)
+CREATE VIRTUAL TABLE municipio_busca USING fts5(
+  cd_mun UNINDEXED, nm_busca, tokenize = 'trigram'
+);  -- preenchida com INSERT … SELECT cd_mun, nm_busca FROM municipio_resumo WHERE consultavel = 1
+
 CREATE TABLE uf_resumo (
   cd_uf TEXT PRIMARY KEY, sigla TEXT NOT NULL UNIQUE, nm_uf TEXT NOT NULL,
   populacao INTEGER NOT NULL, area_km2 REAL NOT NULL, densidade REAL,
@@ -98,6 +103,7 @@ CREATE TABLE uf_resumo (
              FROM municipio_resumo WHERE consultavel = 1) AS r
     WHERE r.cd_mun = municipio_resumo.cd_mun;
    ```
+6b. `municipio_busca` (FTS5 trigram) preenchida a partir de `municipio_resumo` consultáveis. Usamos o `nm_busca` já normalizado em PHP em vez da opção `remove_diacritics` do trigram (SQLite ≥ 3.45): a normalização também trata apóstrofo/hífen e precisa ser idêntica à do termo buscado.
 7. `uf_resumo` a partir de `municipio_resumo` (incluindo área de não consultáveis conforme H1), `total_municipios` = só consultáveis, `densidade = SUM(pop)/SUM(area)`.
 8. Validação final no próprio comando: imprime totais Brasil (UFs, municípios, população, área) e **falha com exit code ≠ 0** se população ≠ 203.080.756 ou nº de UFs ≠ 27 — o build quebra em vez de subir com dado errado.
 

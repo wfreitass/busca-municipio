@@ -7,9 +7,9 @@
 
 ## 2. API
 
-- [ ] 2.1 [BACK] `MunicipioQuery::buscar()` + `BuscarMunicipiosRequest` + `GET /api/municipios` (design D1/D2); verificar com `curl 'localhost:8000/api/municipios?q=sao%20paulo'` — commit `feat(backend): busca de municipios por nome`
+- [ ] 2.1 [BACK] Porta `MunicipioSearch` + adaptador `Fts5MunicipioSearch` (MATCH por palavra entre aspas, palavras < 3 letras via LIKE, relevância no ORDER BY) + binding no `AppServiceProvider` + `BuscarMunicipiosRequest` + `GET /api/municipios` (design D1/D2); verificar `curl '…/municipios?q=paulo%20sao'` e `q=sp` — commit `feat(backend): busca de municipios com fts5 trigram`
 - [ ] 2.2 [BACK] `MunicipioQuery::detalhe()` + `MunicipioResource` + `GET /api/municipios/{codigo}` (D3/D4); verificar com `curl localhost:8000/api/municipios/3550308` — commit `feat(backend): resumo do municipio`
-- [ ] 2.3 [QA] Feature tests com fixture: busca sem acento, homônimos com siglas distintas, apóstrofo, `q` curto → 422, `limite=50` → 422, vazio → `[]`, ordenação exato > prefixo > contém, detalhe 200 com soma de setores, 404 inexistente, 404 mal formado, 404 não consultável; verificar `php artisan test` — commit `test(backend): api de municipios`
+- [ ] 2.3 [QA] Feature tests com fixture: busca sem acento, homônimos com siglas distintas, apóstrofo, palavras fora de ordem (`paulo sao`), termo de 2 letras (`sp`), sintaxe FTS digitada (`sao* OR -paulo` → 200), `q` curto → 422, `limite=50` → 422, vazio → `[]`, ordenação exato > prefixo > contém, detalhe 200 com soma de setores, 404 inexistente, 404 mal formado, 404 não consultável; verificar `php artisan test` — commit `test(backend): api de municipios`
 
 ## 3. Tela
 

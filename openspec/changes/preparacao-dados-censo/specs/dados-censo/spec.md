@@ -81,6 +81,17 @@ Cada município SHALL ter uma forma normalizada do nome em minúsculas, sem acen
 - **WHEN** o nome é `Olho-d'Água das Flores`
 - **THEN** a forma normalizada é `olho d agua das flores`
 
+### Requirement: Índice textual de municípios
+O read model SHALL conter um índice de texto completo sobre o nome normalizado de cada município consultável, que permita encontrar municípios por trechos de 3 ou mais letras de qualquer palavra do nome, com as palavras em qualquer ordem. O registro não consultável MUST NOT estar no índice.
+
+#### Scenario: Índice cobre os consultáveis
+- **WHEN** o read model é gerado
+- **THEN** o índice possui exatamente 5.570 entradas
+
+#### Scenario: Trecho de palavra
+- **WHEN** o índice é consultado pelo trecho `tocan`
+- **THEN** retorna `Bom Jesus do Tocantins`
+
 ### Requirement: Ranking de densidade pré-calculado
 Cada município consultável SHALL ter sua posição no ranking de densidade da própria UF, com 1 = mais denso. Empates de densidade SHALL ser desempatados por nome normalizado ascendente; municípios com densidade `null` SHALL ficar ao final.
 

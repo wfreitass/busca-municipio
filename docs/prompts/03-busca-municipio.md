@@ -39,8 +39,11 @@ Implementação:
 - Camadas: MunicipioController (fino) → BuscarMunicipiosRequest → MunicipioQuery (Query Builder, só
   municipio_resumo JOIN uf_resumo) → MunicipioSugestaoResource / MunicipioResumoResource.
 - GET /api/municipios?q=&limite=  — trim em prepareForValidation; q 2..60; limite 1..20 (padrão 10).
-  Termo normalizado com o MESMO NormalizadorTexto da preparação; escapar % e _ (ESCAPE '\').
-  ORDER BY CASE exato=0 / prefixo=1 / contém=2, populacao DESC, nm_busca. Só consultavel = 1.
+  Busca atrás da porta MunicipioSearch (interface) com adaptador Fts5MunicipioSearch, ligado no AppServiceProvider.
+  Termo normalizado com o MESMO NormalizadorTexto da preparação. Palavras com ≥3 letras → MATCH, cada uma
+  entre aspas ("paulo" "sao") — AND em qualquer ordem e sem injeção de sintaxe FTS. Palavras <3 letras →
+  nm_busca LIKE '%w%' ESCAPE '\'. Nenhuma palavra ≥3 → só LIKE.
+  NÃO confie no bm25: ORDER BY CASE exato=0 / prefixo=1 / contém=2, populacao DESC, nm_busca.
 - GET /api/municipios/{codigo} — where('codigo','[0-9]{7}'); não encontrado/não consultável →
   404 {"message":"Município não encontrado."}.
 - Códigos IBGE SEMPRE string no JSON. Arredondamento (2 casas) só no Resource. Percentuais de sexo sobre
@@ -90,7 +93,7 @@ Leia: specs/api-municipios/spec.md, specs/tela-busca-municipio/spec.md, tasks.md
 Tarefa 2.3 (PHPUnit Feature, fixture pequena reaproveitando a da change anterior, com homônimos em 2 UFs e
 um nome com apóstrofo):
   q sem acento acha acentuado · homônimos com siglas distintas e códigos únicos · apóstrofo ·
-  q="s" → 422 · limite=50 → 422 · sem resultado → data [] · ordem exato > prefixo > contém ·
+  "paulo sao" acha São Paulo · "sp" (2 letras) retorna resultados · "sao* OR -paulo" → 200 · q="s" → 422 · limite=50 → 422 · sem resultado → data [] · ordem exato > prefixo > contém ·
   detalhe 200 e soma dos setores fecha · 9999999 → 404 JSON · "abc" → 404 · não consultável → 404.
 
 Tarefa 3.5 (Vitest):

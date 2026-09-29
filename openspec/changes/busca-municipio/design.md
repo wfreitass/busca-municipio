@@ -15,19 +15,29 @@ O read model `municipio_resumo` (change `preparacao-dados-censo`) já tem tudo p
 
 ## Decisions
 
-### D1. Busca com `LIKE` sobre `nm_busca` (sem FTS)
-Com 5.570 linhas, um scan com `LIKE '%termo%'` custa poucos ms. A relevância vem de um `CASE` no `ORDER BY`:
+### D1. Busca com FTS5 trigram, atrás de uma porta (`MunicipioSearch`)
+A tabela virtual `municipio_busca` (criada no build, change `preparacao-dados-censo`) indexa `nm_busca` com `tokenize='trigram'`. Validado na imagem `php:8.3-apache` (SQLite 3.46.1) contra o dado real.
+
+Montagem da consulta a partir do termo normalizado (`NormalizadorTexto`, mesma função da preparação):
+1. Quebra em palavras. Palavras com **≥ 3 letras** vão para o `MATCH`, **cada uma entre aspas** (`"paulo" "sao"`): o FTS5 faz AND entre elas, **em qualquer ordem**, e as aspas neutralizam a sintaxe do FTS (`-`, `*`, `AND`, `NEAR`) digitada pelo usuário.
+2. Palavras com **< 3 letras** (ex.: `d` em `alta floresta d oeste`, ou o termo `sp` inteiro) não geram trigramas: viram filtro `nm_busca LIKE '%w%'` (com escape de `%` e `_`).
+3. Se nenhuma palavra tem ≥ 3 letras, a busca é só por `LIKE` (5.570 linhas: < 2 ms).
+
 ```sql
-SELECT … FROM municipio_resumo mr JOIN uf_resumo u ON u.cd_uf = mr.cd_uf
- WHERE mr.consultavel = 1 AND mr.nm_busca LIKE '%' || :t || '%'
+SELECT … FROM municipio_busca b
+  JOIN municipio_resumo mr ON mr.cd_mun = b.cd_mun
+  JOIN uf_resumo u ON u.cd_uf = mr.cd_uf
+ WHERE municipio_busca MATCH :match          -- omitido no caso 3
+   [AND mr.nm_busca LIKE :curta ESCAPE '\']  -- uma por palavra curta
  ORDER BY CASE WHEN mr.nm_busca = :t THEN 0
-               WHEN mr.nm_busca LIKE :t || '%' THEN 1 ELSE 2 END,
+               WHEN mr.nm_busca LIKE :t || '%' ESCAPE '\' THEN 1 ELSE 2 END,
           mr.populacao DESC, mr.nm_busca
  LIMIT :limite;
 ```
-`:t` = `NormalizadorTexto::normalizar(q)` (mesma função usada na preparação — garante simetria). Escapar `%` e `_` do termo (`ESCAPE '\'`).
-- Alternativa descartada: FTS5 — exige tabela virtual e tokenização; ganho imperceptível nesse volume.
-- Alternativa descartada: buscar prefixo por palavra (`% termo%`) — decidimos "contém" por ser mais tolerante (ex.: `paulo` encontra `São Paulo`).
+- **Relevância é nossa, não do `bm25`.** No teste, `MATCH 'sao paulo'` devolveu `sao paulo de olivenca` antes de `sao paulo`; o `ORDER BY` acima corrige.
+- Por que FTS5 e não só `LIKE`: palavras fora de ordem (`paulo sao`, `jesus bom`) e busca indexada que continua rápida se o volume crescer. Nesse volume a latência é igual; o ganho é de comportamento.
+- Por que não Meilisearch: tolera erro de digitação, mas exige container a mais e indexação na subida (risco ao "um comando só"). Fica como adaptador futuro da porta abaixo.
+- **Porta e adaptador só aqui**: `interface MunicipioSearch { buscar(string $termo, int $limite): list<MunicipioSugestao> }`, implementada por `Fts5MunicipioSearch` e ligada em `AppServiceProvider`. Trocar por `MeilisearchMunicipioSearch` = nova classe + uma linha de binding, sem tocar em controller, contrato ou front. O restante da API **não** ganha interface (não há variação prevista — abstração sem motivo é custo).
 
 ### D2. Validação via FormRequest
 `BuscarMunicipiosRequest`: `q => required|string|min:2|max:60` (aplicado após `trim`, via `prepareForValidation`), `limite => sometimes|integer|between:1,20`. Resposta 422 padrão do Laravel (`message` + `errors`).
