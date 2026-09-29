@@ -5,10 +5,11 @@ Cada change do OpenSpec tem **um arquivo de prompt** com quatro blocos independe
 | # | Change | Prompt | Papéis ativos |
 | --- | --- | --- | --- |
 | 1 | `infraestrutura-base` | [01-infraestrutura-base.md](01-infraestrutura-base.md) | BA · BACK · FRONT · QA |
-| 2 | `preparacao-dados-censo` | [02-preparacao-dados-censo.md](02-preparacao-dados-censo.md) | BA · BACK · QA (FRONT só revisa contrato) |
-| 3 | `busca-municipio` | [03-busca-municipio.md](03-busca-municipio.md) | BA · BACK · FRONT · QA |
-| 4 | `ranking-estado` | [04-ranking-estado.md](04-ranking-estado.md) | BA · BACK · FRONT · QA |
-| 5 | `documentacao-entrega` | [05-documentacao-entrega.md](05-documentacao-entrega.md) | BA · BACK · FRONT · QA |
+| 2 | `qualidade-e-ci` | [02-qualidade-e-ci.md](02-qualidade-e-ci.md) | BA · BACK · FRONT · QA |
+| 3 | `preparacao-dados-censo` | [03-preparacao-dados-censo.md](03-preparacao-dados-censo.md) | BA · BACK · QA (FRONT só revisa contrato) |
+| 4 | `busca-municipio` | [04-busca-municipio.md](04-busca-municipio.md) | BA · BACK · FRONT · QA |
+| 5 | `ranking-estado` | [05-ranking-estado.md](05-ranking-estado.md) | BA · BACK · FRONT · QA |
+| 6 | `documentacao-entrega` | [06-documentacao-entrega.md](06-documentacao-entrega.md) | BA · BACK · FRONT · QA |
 
 ## Ordem dentro de cada change
 

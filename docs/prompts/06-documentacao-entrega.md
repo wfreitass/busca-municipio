@@ -20,7 +20,7 @@ Execute as tarefas [BA]: 1.1, 1.4, 1.5 e 2.2.
 - "Decisões técnicas": no máximo ~10 bullets, cada um com o PORQUÊ (read model no build; cópia do sqlite;
   densidade ponderada; registro extra de município e o que a exploração revelou; siglas estáticas;
   busca normalizada; paginação no servidor; proxy nginx sem CORS; Query Builder em vez de Eloquent).
-- "Como conduzi o SDD": ordem das 5 changes, o papel da exploração antes do código e onde a spec mudou
+- "Como conduzi o SDD": ordem das 6 changes, o papel da exploração antes do código e onde a spec mudou
   por causa do dado (cite commits `docs(spec): ...`), prompts por papel em docs/prompts/.
 - "Com mais tempo": OpenAPI, E2E Playwright, ETag/cache HTTP, Meilisearch como novo adaptador de MunicipioSearch (tolerância a erro de digitação),
   filtro por nome no ranking, gráficos, CI, auditoria de acessibilidade.

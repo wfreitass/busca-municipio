@@ -48,6 +48,7 @@ Implementação:
 - `posicao` é a posição global (vem pronta do read model).
 
 Verificação: curl 'localhost:8000/api/v1/ufs/SP/municipios?pagina=2' | jq '.data[0].posicao' → 51.
+Após a 2.3, descomente no .github/workflows/ci.yml (job docker) o smoke de /api/v1/ufs/SP.
 Um commit por tarefa.
 ```
 
