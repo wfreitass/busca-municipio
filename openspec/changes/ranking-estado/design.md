@@ -37,10 +37,14 @@ SELECT posicao_densidade_uf AS posicao, cd_mun, nm_mun, populacao, area_km2, den
 
 ### D4. Front — URL como fonte da verdade
 - Rota `estados/:sigla?` + query param `pagina`, lidos via `input()` com `withComponentInputBinding()`.
-- `BuscaEstadoPage`:
-  - `ufs = rxResource(() => api.ufs())` (carrega uma vez).
-  - `resumo = rxResource({ params: () => sigla(), stream: … })` — só recarrega quando a sigla muda.
-  - `ranking = rxResource({ params: () => ({ sigla: sigla(), pagina: pagina(), porPagina: porPagina() }), stream: … })`.
+- `EstadoStore` (provida na rota `/estados`, mesmo padrão da `MunicipioStore`):
+  - entradas `sigla`, `pagina`, `porPagina` (signals);
+  - `ufs = rxResource(() => api.ufs())` (carrega uma vez);
+  - `resumo = rxResource({ params: sigla, stream: … })` — só recarrega quando a sigla muda;
+  - `ranking = rxResource({ params: () => ({ sigla, pagina, porPagina }), stream: … })`;
+  - `estado` computado (`sem-uf | carregando | sucesso | nao-encontrado | erro`) e `tentarNovamente()`.
+- `BuscaEstadoPage` só copia os inputs da rota para a store e traduz eventos em navegação.
+- Back: `UfQuery` devolve DTOs `readonly` (`UfResumo`, `ItemRanking`, `Pagina<ItemRanking>`); o `meta` é montado a partir do DTO `Pagina`.
 - `mat-select` → `router.navigate(['/estados', sigla])` (sem `pagina` ⇒ volta para 1).
 - `mat-paginator (page)` → `router.navigate([], { queryParams: { pagina }, queryParamsHandling: 'merge' })`. Trocar `por_pagina` também é refletido na URL (`?por_pagina=`), voltando à página 1.
 - Alternativa descartada: estado apenas em signals locais — perde deep link e F5.

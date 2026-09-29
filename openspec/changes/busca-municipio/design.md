@@ -45,8 +45,9 @@ SELECT … FROM municipio_busca b
 ### D3. Detalhe com restrição de rota
 `Route::get('municipios/{codigo}', …)->where('codigo', '[0-9]{7}')`. Qualquer outro formato cai no fallback 404 JSON. `MunicipioQuery::detalhe()` retorna `null` → controller lança `abort(404, 'Município não encontrado.')`.
 
-### D4. Arredondamento só na borda (Resource)
-Read model guarda valores com precisão total; `MunicipioResource` aplica `round(…, 2)`. Percentuais: `homens / (homens + mulheres) * 100`.
+### D4. DTOs `readonly` entre Query e Resource; arredondamento só na borda
+`MunicipioQuery::detalhe(string $codigo): ?MunicipioResumo` devolve um DTO `final readonly class` (valores com precisão total, tipados — o Query Builder devolve `stdClass`, e o mapeamento acontece num único ponto, o que mantém o Larastan nível 8 limpo). `MunicipioResumoResource` aplica `round(…, 2)` e calcula percentuais `homens / (homens + mulheres) * 100` (ou `null`).
+- Alternativa descartada: devolver `stdClass`/array direto ao Resource — funciona, mas espalha acesso a propriedades não tipadas pela camada HTTP.
 
 ### D5. Front — fluxo do autocomplete
 ```ts
@@ -60,8 +61,13 @@ termo$ = toObservable(this.termo).pipe(
 - `mat-autocomplete` com `[displayWith]` retornando `rotulo`; `optionSelected` → `router.navigate(['/municipios', codigo])`.
 - Quando o valor do controle vira objeto (item selecionado) o stream ignora (`filter(typeof === 'string')`).
 
-### D6. Front — página dirige o estado pela URL
-`BuscaMunicipioPage` lê `codigo` via `input()` (`withComponentInputBinding()`), e um `effect`/`rxResource` carrega `GET /api/v1/municipios/{codigo}`. Estados: `ocioso | carregando | sucesso | nao-encontrado | erro`. `MunicipioResumoComponent` é puramente de apresentação (`input.required<MunicipioResumo>()`).
+### D6. Front — URL → página → store → componentes
+- `MunicipioStore` (`@Injectable()`, provida em `providers` da rota `/municipios`): `codigo = signal<string|null>()`, `resumo = rxResource({ params: codigo, stream: api.municipio })` e um `computed` `estado: 'ocioso' | 'carregando' | 'sucesso' | 'nao-encontrado' | 'erro'` derivado do recurso e do `ApiErro.status` (404 ⇒ `nao-encontrado`). Método `tentarNovamente()` = `resumo.reload()`.
+- `BuscaMunicipioPage` lê `codigo` via `input()` (`withComponentInputBinding()`) e só faz `store.codigo.set(...)`; na seleção do autocomplete, `router.navigate(['/municipios', codigo])`.
+- `MunicipioResumoComponent` é apresentação pura (`input.required<MunicipioResumo>()`).
+- Erros HTTP chegam como `ApiErro` via `problemaInterceptor` (ver `docs/ARQUITETURA.md` §3).
+- Alternativa descartada: estado na própria página — funciona com uma tela, mas mistura navegação, efeitos e estado; a store isola e deixa a página trivial.
+- Alternativa descartada: NgRx — cerimônia desproporcional para duas telas.
 
 ### D7. Layout dos indicadores
 Grid responsivo de `indicador-card` (rótulo + valor + sub-rótulo): População · Setores · Área · Densidade. Abaixo, duas seções: **Situação dos setores** (urbanos/rurais/sem classificação, com barra horizontal proporcional em CSS puro) e **População por sexo** (homens/mulheres/não informado, com barra proporcional). Sem biblioteca de gráficos.

@@ -19,7 +19,8 @@
 - [ ] 3.2 [FRONT] Shell com toolbar e navegação entre `/municipios` e `/estados` (páginas placeholder lazy), `''` redireciona para `/municipios`, rota coringa volta para `/municipios`; `proxy.conf.json` para `ng serve`; verificar navegação manual — commit `feat(frontend): shell e rotas das duas telas`
 - [ ] 3.2b [FRONT] Script `api:tipos` (`openapi-typescript`) gerando `src/app/core/api/schema.ts` a partir de `docs/api/openapi.yaml`, e `censo.models.ts` com aliases; verificar `npm run api:tipos && npm run build` — commit `build(frontend): tipos gerados a partir do contrato openapi`
 - [ ] 3.3 [FRONT] `CensoApiService.health()` + indicador discreto de "API indisponível" no shell; verificar desligando o back-end — commit `feat(frontend): verificação de saúde da api`
-- [ ] 3.4 [QA] Teste do `CensoApiService.health()` com `HttpTestingController`; verificar `npm test` verde — commit `test(frontend): servico de api`
+- [ ] 3.3b [FRONT] `problemaInterceptor` (Problem Details → `ApiErro {status, titulo, detalhe}`; erro de rede → `status: 0`) registrado com `withInterceptors`; verificar com `/api/v1/nao-existe` no console — commit `feat(frontend): interceptor de problem details`
+- [ ] 3.4 [QA] Teste do `CensoApiService.health()` com `HttpTestingController` e do `problemaInterceptor` (404 problem+json → `ApiErro.status = 404`); verificar `npm test` verde — commit `test(frontend): servico de api`
 - [ ] 3.5 [FRONT] `frontend/Dockerfile` multi-stage + `nginx.conf` (fallback SPA + proxy `/api/`); verificar `docker build frontend` — commit `build(frontend): dockerfile nginx com proxy`
 
 ## 4. Orquestração

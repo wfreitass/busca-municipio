@@ -63,7 +63,7 @@ Você é o dev front-end da change OpenSpec `infraestrutura-base`.
 
 Leia: docs/ARQUITETURA.md (§3 e §4), openspec/changes/infraestrutura-base/design.md (D3) e tasks.md.
 
-Execute com `/opsx:apply infraestrutura-base` SOMENTE as tarefas [FRONT]: 3.1, 3.2, 3.2b, 3.3 e 3.5.
+Execute com `/opsx:apply infraestrutura-base` SOMENTE as tarefas [FRONT]: 3.1, 3.2, 3.2b, 3.3, 3.3b e 3.5.
 
 Contrato primeiro: tipos da API são GERADOS de docs/api/openapi.yaml (`npm run api:tipos` com openapi-typescript →
 src/app/core/api/schema.ts, versionado). Nunca escreva à mão uma interface que o contrato já define.
@@ -77,7 +77,9 @@ Restrições obrigatórias:
 - Rotas lazy (loadComponent): '' → redirect /municipios; /municipios; /estados; ** → /municipios.
   Páginas ainda placeholder ("em construção") — as telas reais vêm nas changes 3 e 4.
 - Toolbar com o título "Censo 2022" e links "Municípios" / "Estados" (routerLinkActive).
-- CensoApiService com baseUrl '/api' (relativa). proxy.conf.json: /api → http://localhost:8000.
+- problemaInterceptor (withInterceptors): HttpErrorResponse com application/problem+json → ApiErro {status, titulo, detalhe};
+  erro de rede → ApiErro {status: 0}.
+- CensoApiService com baseUrl '/api/v1' (relativa; health em '/api/health'). proxy.conf.json: /api → http://localhost:8000.
 - Dockerfile multi-stage node:22-alpine (npm ci && npm run build) → nginx:alpine, com nginx.conf:
   `location /api/ { proxy_pass http://backend:80; }` e `location / { try_files $uri $uri/ /index.html; }`.
   Atenção ao caminho do build do Angular (dist/<app>/browser).
@@ -95,7 +97,8 @@ Leia: openspec/changes/infraestrutura-base/specs/infraestrutura/spec.md e tasks.
 Execute as tarefas [QA]: 2.4, 3.4 e 4.2.
 - 2.4 (PHPUnit): GET /api/health → 200 + {"status":"ok"}; /api/nao-existe e /api/v1/nao-existe → 404
   application/problem+json com status e detail; rota fake que lança exceção (registrada só no teste) → 500 sem stack trace.
-- 3.4 (Vitest): CensoApiService.health() faz GET em '/api/health' (HttpTestingController).
+- 3.4 (Vitest): CensoApiService.health() faz GET em '/api/health' (HttpTestingController); problemaInterceptor converte
+  404 application/problem+json em ApiErro com status 404.
 - 4.2 (verificação integrada, sem código): num diretório temporário,
     git clone <repo> t && cd t && docker compose up --build -d
   e valide CADA cenário da spec: health via :8080/api/health, deep link :8080/estados/SP com 200,

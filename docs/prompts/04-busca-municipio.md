@@ -37,6 +37,7 @@ Leia: specs/api-municipios/spec.md (comportamento) e docs/api/openapi.yaml (cont
 Execute com `/opsx:apply busca-municipio` SOMENTE as tarefas [BACK]: 2.1 e 2.2.
 
 Implementação:
+- declare(strict_types=1); Queries devolvem DTOs `final readonly class` (Larastan 8).
 - Camadas: MunicipioController (fino) → BuscarMunicipiosRequest → MunicipioQuery (Query Builder, só
   municipio_resumo JOIN uf_resumo) → MunicipioSugestaoResource / MunicipioResumoResource.
 - GET /api/v1/municipios?q=&limite=  — trim em prepareForValidation; q 2..60; limite 1..20 (padrão 10).
@@ -76,7 +77,9 @@ Implementação:
   Densidade (hab/km²); seção "Situação dos setores" (urbanos, rurais, sem classificação só se > 0) e
   "População por sexo" (homens, mulheres com %, não informado só se > 0) com barras proporcionais em CSS.
   pt-BR: number:'1.0-0' para inteiros, number:'1.2-2' para área/densidade; null → "—".
-- BuscaMunicipioPage: rota /municipios/:codigo? via input(); seleção → router.navigate(['/municipios', codigo]);
+- MunicipioStore (@Injectable, provida em providers da rota): codigo signal, resumo = rxResource, estado computado,
+  tentarNovamente(). Erros chegam como ApiErro pelo problemaInterceptor (404 ⇒ não encontrado).
+- BuscaMunicipioPage (só liga URL ↔ store): rota /municipios/:codigo? via input(); seleção → router.navigate(['/municipios', codigo]);
   estados: ocioso (instrução "Digite ao menos 2 letras…"), carregando, sucesso, não encontrado (404),
   erro com botão "Tentar novamente". Deep link e F5 devem funcionar.
 - Sem bibliotecas de gráfico. Layout responsivo (grid auto-fit).

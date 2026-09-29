@@ -37,6 +37,7 @@ Leia: specs/api-estados/spec.md (comportamento) e docs/api/openapi.yaml (contrat
 Execute com `/opsx:apply ranking-estado` SOMENTE as tarefas [BACK]: 2.1, 2.2 e 2.3.
 
 Implementação:
+- declare(strict_types=1); UfQuery devolve DTOs readonly (UfResumo, ItemRanking, Pagina<ItemRanking>).
 - UfController → RankingUfRequest → UfQuery (uf_resumo / municipio_resumo) → Resources.
 - GET /api/v1/ufs → 27 UFs {codigo, sigla, nome} ordenadas por nome.
 - GET /api/v1/ufs/{sigla} — where('sigla','[A-Za-z]{2}'); resolve com SiglasUf::codigo(strtoupper);
@@ -65,6 +66,8 @@ Execute com `/opsx:apply ranking-estado` SOMENTE as tarefas [FRONT]: 1.2, 3.1, 3
 Implementação:
 - Modelos: Uf, UfResumo, ItemRanking, Pagina<T> {data, meta}.
 - CensoApiService.ufs(), .uf(sigla), .ranking(sigla, pagina, porPagina).
+- EstadoStore (provida na rota, mesmo padrão da MunicipioStore) concentra os três rxResource abaixo;
+  BuscaEstadoPage só liga URL ↔ store.
 - BuscaEstadoPage: rota /estados/:sigla? + query params pagina/por_pagina lidos via input().
   URL é a fonte da verdade. Três rxResource separados: ufs (uma vez), resumo (depende só da sigla),
   ranking (sigla + pagina + porPagina) — trocar de página NÃO recarrega o resumo.
