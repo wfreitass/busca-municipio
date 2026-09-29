@@ -45,4 +45,19 @@ describe('CensoApiService', () => {
       { status: 404, statusText: 'Not Found', headers: new HttpHeaders({ 'Content-Type': 'application/problem+json' }) },
     );
   });
+
+  it('buscarMunicipios envia q e limite e devolve só o data', () => {
+    service.buscarMunicipios('sao paulo', 5).subscribe((lista) => expect(lista).toEqual([]));
+
+    const request = http.expectOne((r) => r.url === '/api/v1/municipios');
+    expect(request.request.params.get('q')).toBe('sao paulo');
+    expect(request.request.params.get('limite')).toBe('5');
+    request.flush({ data: [] });
+  });
+
+  it('municipio busca o resumo pelo código', () => {
+    service.municipio('3550308').subscribe((resumo) => expect(resumo.codigo).toBe('3550308'));
+
+    http.expectOne('/api/v1/municipios/3550308').flush({ data: { codigo: '3550308' } });
+  });
 });
