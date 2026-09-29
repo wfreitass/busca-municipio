@@ -2,8 +2,8 @@
 
 ## 1. Exploração do dado
 
-- [ ] 1.1 [BA] Executar as consultas H1–H10 do `design.md` com `sqlite3 censo.sqlite` (ou `docker run --rm -v $PWD:/d keinos/sqlite3`) e registrar resultados e decisões em `openspec/changes/preparacao-dados-censo/exploracao.md`; verificar que toda hipótese tem resultado e decisão — commit `docs(spec): exploracao do censo.sqlite`
-- [ ] 1.2 [BA] Se alguma decisão da exploração contrariar a spec `dados-censo` (ex.: H1 diferente do esperado), atualizar a spec e o design antes de codar (`/opsx:update`); verificar `openspec validate preparacao-dados-censo` — commit `docs(spec): ajusta regras apos exploracao`
+- [x] 1.1 [BA] Executar as consultas H1–H10 do `design.md` com `sqlite3 censo.sqlite` (ou `docker run --rm -v $PWD:/d keinos/sqlite3`) e registrar resultados e decisões em `openspec/changes/preparacao-dados-censo/exploracao.md`; verificar que toda hipótese tem resultado e decisão — commit `docs(spec): exploracao do censo.sqlite`
+- [x] 1.2 [BA] (sem divergência: a spec já refletia o dado real) Se alguma decisão da exploração contrariar a spec `dados-censo` (ex.: H1 diferente do esperado), atualizar a spec e o design antes de codar (`/opsx:update`); verificar `openspec validate preparacao-dados-censo` — commit `docs(spec): ajusta regras apos exploracao`
 
 ## 2. Utilitários de domínio
 
