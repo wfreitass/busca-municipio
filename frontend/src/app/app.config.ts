@@ -5,7 +5,7 @@ import localePt from '@angular/common/locales/pt';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 
 import { routes } from './app.routes';
-import { problemaInterceptor } from '../core/http/problema.interceptor';
+import { problemaInterceptor } from './core/http/problema.interceptor';
 
 registerLocaleData(localePt);
 
