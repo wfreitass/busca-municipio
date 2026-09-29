@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V1\MunicipioController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', static fn () => response()->json(['status' => 'ok']))
@@ -10,5 +11,6 @@ Route::get('/health', static fn () => response()->json(['status' => 'ok']))
 Route::prefix('v1')
     ->middleware('cache.headers:public;max_age=86400;etag')
     ->group(function (): void {
-        // Rotas de negócio serão adicionadas nas changes seguintes.
+        Route::get('/municipios', [MunicipioController::class, 'buscar']);
+        Route::get('/municipios/{codigo}', [MunicipioController::class, 'mostrar'])->where('codigo', '[0-9]{7}');
     });
