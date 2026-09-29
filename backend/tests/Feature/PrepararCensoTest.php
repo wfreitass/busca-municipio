@@ -4,14 +4,36 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use Illuminate\Support\Facades\Artisan;
 use PDO;
 use PDOStatement;
+use Tests\Concerns\UsaBaseCenso;
 use Tests\TestCase;
 
 final class PrepararCensoTest extends TestCase
 {
-    private string $arquivo;
+    use UsaBaseCenso;
+
+    private const FIXTURE = <<<'SQL'
+        INSERT INTO uf VALUES ('35', 'São Paulo'), ('14', 'Roraima');
+        INSERT INTO municipio VALUES
+            ('3500001', 'Água Alta', '35'),
+            ('3500002', 'Beta', '35'),
+            ('3500003', 'Sem Setores', '35'),
+            ('1400001', 'Gama', '14'),
+            ('.', '', '14');
+        INSERT INTO setor VALUES
+            ('s1', '3500001', 'Urbana', 1, 100),
+            ('s2', '3500001', 'Rural', 9, 20),
+            ('s3', '3500001', NULL, 0, NULL),
+            ('s4', '3500002', 'Urbana', 1, 1000),
+            ('s5', '1400001', 'Urbana', 2, 10),
+            ('s6', '.', 'Rural', 100, 0);
+        INSERT INTO demografia VALUES
+            ('s1', 100, 40, 50),
+            ('s3', 0, 0, 0),
+            ('s4', 1000, 500, 500),
+            ('s5', 10, 5, 5);
+        SQL;
 
     private PDO $db;
 
@@ -19,18 +41,7 @@ final class PrepararCensoTest extends TestCase
     {
         parent::setUp();
 
-        $this->arquivo = (string) tempnam(sys_get_temp_dir(), 'censo-fixture-');
-        $this->db = new PDO('sqlite:'.$this->arquivo);
-        $this->criarFixture();
-
-        $this->preparar();
-    }
-
-    protected function tearDown(): void
-    {
-        @unlink($this->arquivo);
-
-        parent::tearDown();
+        $this->db = new PDO('sqlite:'.$this->criarBaseCenso(self::FIXTURE, usarComoConexao: false));
     }
 
     public function test_agrega_populacao_area_setores_e_sexo(): void
@@ -81,44 +92,9 @@ final class PrepararCensoTest extends TestCase
     {
         $antes = $this->consultar('SELECT * FROM municipio_resumo ORDER BY cd_mun')->fetchAll(PDO::FETCH_ASSOC);
 
-        $this->preparar();
+        $this->prepararBaseCenso();
 
         self::assertSame($antes, $this->consultar('SELECT * FROM municipio_resumo ORDER BY cd_mun')->fetchAll(PDO::FETCH_ASSOC));
-    }
-
-    private function criarFixture(): void
-    {
-        $this->db->exec(<<<'SQL'
-            CREATE TABLE uf (cd_uf TEXT PRIMARY KEY, nm_uf TEXT NOT NULL) WITHOUT ROWID;
-            CREATE TABLE municipio (cd_mun TEXT PRIMARY KEY, nm_mun TEXT NOT NULL, cd_uf TEXT NOT NULL) WITHOUT ROWID;
-            CREATE TABLE setor (cd_setor TEXT PRIMARY KEY, cd_mun TEXT NOT NULL, situacao TEXT, area_km2 REAL, populacao INTEGER) WITHOUT ROWID;
-            CREATE TABLE demografia (cd_setor TEXT PRIMARY KEY, moradores INTEGER, homens INTEGER, mulheres INTEGER) WITHOUT ROWID;
-
-            INSERT INTO uf VALUES ('35', 'São Paulo'), ('14', 'Roraima');
-            INSERT INTO municipio VALUES
-                ('3500001', 'Água Alta', '35'),
-                ('3500002', 'Beta', '35'),
-                ('3500003', 'Sem Setores', '35'),
-                ('1400001', 'Gama', '14'),
-                ('.', '', '14');
-            INSERT INTO setor VALUES
-                ('s1', '3500001', 'Urbana', 1, 100),
-                ('s2', '3500001', 'Rural', 9, 20),
-                ('s3', '3500001', NULL, 0, NULL),
-                ('s4', '3500002', 'Urbana', 1, 1000),
-                ('s5', '1400001', 'Urbana', 2, 10),
-                ('s6', '.', 'Rural', 100, 0);
-            INSERT INTO demografia VALUES
-                ('s1', 100, 40, 50),
-                ('s3', 0, 0, 0),
-                ('s4', 1000, 500, 500),
-                ('s5', 10, 5, 5);
-        SQL);
-    }
-
-    private function preparar(): void
-    {
-        self::assertSame(0, Artisan::call('censo:preparar', ['--database' => $this->arquivo, '--skip-validation' => true]));
     }
 
     /** @return array<string, mixed> */
