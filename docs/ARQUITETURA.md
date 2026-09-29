@@ -1,6 +1,6 @@
 # Arquitetura — Censo 2022 por Município e UF
 
-> Documento de decisão (estilo ADR) que orienta todas as changes em `openspec/changes/`.
+> Documento de decisão (estilo ADR) que orienta todas as changes do OpenSpec (arquivadas em `openspec/changes/archive/`; specs consolidadas em `openspec/specs/`).
 > Timebox do teste: **2h30**. Toda decisão abaixo foi pesada contra esse prazo.
 
 ## 1. Recomendação

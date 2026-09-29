@@ -102,7 +102,7 @@ Detalhe completo em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md). O essencial:
 
 1. **Read model gerado no build.** O comando `censo:preparar` agrega os 468 mil setores em `municipio_resumo` e `uf_resumo`, calcula a posição no ranking e cria o índice de busca, **numa cópia** do sqlite dentro da imagem. A API só faz leituras triviais e indexadas. *Por quê:* o dado é imutável, então agregar uma vez é mais rápido, simples e testável do que agregar a cada requisição; o `censo.sqlite` da raiz continua intacto.
 2. **O build falha se os totais não baterem com o IBGE** (27 UFs, 5.570 municípios, 203.080.756 hab., 8.510.417 km²). *Por quê:* erro de agregação vira falha visível, não número errado na tela.
-3. **Explorar o dado antes de codar** ([`exploracao.md`](openspec/changes/preparacao-dados-censo/exploracao.md)). Achados que viraram regra:
+3. **Explorar o dado antes de codar** ([`exploracao.md`](openspec/changes/archive/2026-09-28-preparacao-dados-censo/exploracao.md)). Achados que viraram regra:
    - o 5.571º "município" é o registro `'.'` das lagoas dos Patos e Mirim (RS): fica fora da busca e do ranking, mas sua área (13.085,86 km²) continua somada ao RS, senão a área do Brasil não fecha;
    - a população oficial vem de `setor.populacao`; `demografia.moradores` soma 519 mil a menos;
    - 9.327 setores não têm linha em `demografia` → `LEFT JOIN`, e a diferença vira "não informado" na distribuição por sexo;
@@ -118,7 +118,7 @@ Detalhe completo em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md). O essencial:
 
 ## Como conduzi o SDD com OpenSpec
 
-1. **Especificação antes do código.** Seis changes em `openspec/changes/`, cada uma com proposal, specs (cenários WHEN/THEN), design (decisão + alternativa descartada) e tasks, validadas com `openspec validate --strict` (também no CI).
+1. **Especificação antes do código.** Seis changes (hoje arquivadas em `openspec/changes/archive/`, com as specs consolidadas em `openspec/specs/`), cada uma com proposal, specs (cenários WHEN/THEN), design (decisão + alternativa descartada) e tasks, validadas com `openspec validate --strict` (também no CI).
 2. **Ordem:** `infraestrutura-base` → `qualidade-e-ci` → `preparacao-dados-censo` → `busca-municipio` → `ranking-estado` → `documentacao-entrega`. Primeiro o que é eliminatório (subir com um comando) e a rede de segurança (CI); depois o dado, do qual as duas telas dependem.
 3. **A spec mudou quando o dado contrariou a hipótese**, sempre em commits `docs(spec): …` antes do código: o registro extra das lagoas, a fonte da população, os exemplos reais (o município mais denso de SP é Taboão da Serra, não Diadema), e a descoberta de que o trigram não casa termos de 2 letras.
 4. **Prompts por papel** em [`docs/prompts/`](docs/prompts/README.md): para cada change, um bloco para BA (valida a spec contra o dado e o enunciado), BACK, FRONT e QA (testes simples + verificação integrada).

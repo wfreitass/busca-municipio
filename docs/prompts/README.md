@@ -1,5 +1,7 @@
 # Prompts por papel
 
+> Todas as changes já foram implementadas e arquivadas. Os caminhos `openspec/changes/<change>/` citados nos prompts agora ficam em `openspec/changes/archive/2026-09-28-<change>/`, e as specs consolidadas em `openspec/specs/`.
+
 Cada change do OpenSpec tem **um arquivo de prompt** com quatro blocos independentes — um por papel. Cada bloco pode ser colado numa sessão nova do Claude Code (ou num subagente) e funciona sozinho, porque aponta para os artefatos da change em vez de repetir o conteúdo.
 
 | # | Change | Prompt | Papéis ativos |

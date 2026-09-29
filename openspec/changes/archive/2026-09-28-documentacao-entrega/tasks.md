@@ -11,4 +11,4 @@
 ## 2. Fechamento
 
 - [x] 2.1 [QA] Clone limpo em pasta temporária → `docker compose up --build` → roteiro de aceite: busca `sao paulo`, homônimo `bom jesus`, deep link `/municipios/3550308`, `/estados/SP` página 2, `/estados/RR`, `git status` limpo; rodar as duas suítes de testes — commit `fix:` para qualquer ajuste encontrado
-- [ ] 2.2 [BA] `openspec archive` de cada change concluída na ordem (infraestrutura-base → qualidade-e-ci → preparacao-dados-censo → busca-municipio → ranking-estado → documentacao-entrega); verificar `openspec validate --all` e `openspec list --specs` — commit `docs(spec): arquiva changes concluidas`
+- [x] 2.2 [BA] `openspec archive` de cada change concluída na ordem (infraestrutura-base → qualidade-e-ci → preparacao-dados-censo → busca-municipio → ranking-estado → documentacao-entrega); verificar `openspec validate --all` e `openspec list --specs` — commit `docs(spec): arquiva changes concluidas`
