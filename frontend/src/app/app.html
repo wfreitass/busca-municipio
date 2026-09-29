@@ -1,0 +1,14 @@
+<header class="toolbar">
+  <a class="brand" routerLink="/municipios">Censo 2022</a>
+  <nav aria-label="Navegação principal">
+    <a routerLink="/municipios" routerLinkActive="active">Municípios</a>
+    <a routerLink="/estados" routerLinkActive="active">Estados</a>
+  </nav>
+  @if (apiUnavailable()) {
+    <span class="api-warning" role="status">API indisponível</span>
+  }
+</header>
+
+<main>
+  <router-outlet />
+</main>

@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  specs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npx --yes @fission-ai/openspec@1.13.2 validate --all --strict
+      - run: npx --yes @redocly/cli lint docs/api/openapi.yaml
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite
+          tools: composer
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+        working-directory: backend
+      - run: composer lint
+        working-directory: backend
+      - run: composer analyse
+        working-directory: backend
+      - run: composer test
+        working-directory: backend
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run api:tipos && git diff --exit-code -- src/app/core/api/schema.ts
+        working-directory: frontend
+      - run: npm run lint
+        working-directory: frontend
+      - run: npm test -- --watch=false
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up --build --wait --wait-timeout 180
+      - run: curl -fsS http://localhost:8080/api/health
+      - run: curl -fsS -o /dev/null http://localhost:8080/estados/SP
+      # Smoke das rotas de negócio será habilitado após o read model existir.
+      # - run: curl -fsS http://localhost:8080/api/v1/ufs/SP | jq -e '.data.total_municipios == 645'
+      - run: docker compose down
