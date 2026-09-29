@@ -3,7 +3,7 @@
 ## 1. Contrato
 
 - [x] 1.1 [BA] Revisar a spec `api-municipios` contra `exploracao.md` (exemplos de homônimos e apóstrofos reais; população real de São Paulo) e ajustar exemplos se necessário; verificar `openspec validate busca-municipio` e conferir coerência com `docs/api/openapi.yaml` (`npx @redocly/cli lint docs/api/openapi.yaml`) — commit `docs(spec): confirma exemplos reais da busca de municipios`
-- [ ] 1.2 [FRONT] Regenerar tipos (`npm run api:tipos`) e expor aliases em `core/api/censo.models.ts`; verificar `npm run build` — commit `feat(frontend): tipos do contrato de municipios`
+- [x] 1.2 [FRONT] Regenerar tipos (`npm run api:tipos`) e expor aliases em `core/api/censo.models.ts`; verificar `npm run build` — commit `feat(frontend): tipos do contrato de municipios`
 
 ## 2. API
 
