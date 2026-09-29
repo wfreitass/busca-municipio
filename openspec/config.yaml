@@ -1,0 +1,49 @@
+schema: spec-driven
+
+context: |
+  Language: pt-BR
+  All artifacts must be written in pt-BR.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Projeto: consulta ao Censo Demográfico 2022 (IBGE) por município e por UF.
+  Teste técnico com timebox de 2h30 — escopo mínimo, entregue de forma completa.
+
+  Stack:
+  - Back-end: PHP 8.3 + Laravel 12 (API REST JSON, somente leitura), em backend/.
+  - Front-end: Angular 20+ (standalone components, signals, Angular Material), em frontend/.
+  - Banco: SQLite, arquivo censo.sqlite versionado na raiz do repositório (35,2 MB).
+  - Infra: Docker Compose; `docker compose up --build` numa máquina só com Docker.
+
+  Arquitetura (ver docs/ARQUITETURA.md):
+  - Monorepo, SPA desacoplada + API REST em camadas enxutas
+    (Controller -> FormRequest -> Query/Repository -> Resource).
+  - Read model pré-computado (CQRS-lite): no build da imagem o comando
+    `censo:preparar` gera tabelas agregadas (municipio_resumo, uf_resumo)
+    e índices numa CÓPIA do censo.sqlite. A API só lê o read model.
+  - O censo.sqlite da raiz NUNCA é alterado (git status limpo após subir).
+
+  Dado (armadilhas conhecidas — toda spec deve respeitá-las):
+  - Tabela uf não tem sigla: mapa estático cd_uf -> sigla (27 UFs).
+  - municipio tem 5.571 linhas, o IBGE oficial diz 5.570: investigar o extra.
+  - setor tem 468.099 linhas e demografia 458.772: LEFT JOIN, nunca INNER.
+  - situacao pode ser nula; area_km2 e populacao podem ser nulas.
+  - homens + mulheres pode divergir de moradores (sigilo estatístico).
+  - Densidade de agregados = soma(pop) / soma(área); nunca média de densidades.
+  - Nomes com acento/apóstrofo/hífen e homônimos entre UFs (identificar UF).
+  - Totais de conferência: 27 UFs, 5.570 municípios, 203.080.756 hab.,
+    8.510.417 km².
+
+  Testes: apenas testes simples (PHPUnit feature/unit no back; Vitest no front).
+  Commits: pequenos, frequentes, Conventional Commits.
+
+rules:
+  proposal:
+    - Manter abaixo de 1 página; incluir "Fora de escopo" quando houver risco de scope creep.
+  specs:
+    - Todo cenário deve ser verificável por teste automatizado ou por um comando/observação manual explícita.
+    - Contratos de API devem citar método, rota, parâmetros, códigos HTTP e formato do JSON.
+  design:
+    - Toda decisão deve citar a alternativa descartada e o motivo.
+  tasks:
+    - Cada tarefa deve caber em até ~20 minutos e terminar num commit Conventional Commits.
+    - Indicar o papel responsável (BA, BACK, FRONT, QA) entre colchetes no início da tarefa.
