@@ -28,17 +28,18 @@ jobs:
           extensions: pdo_sqlite
           tools: composer
           coverage: none
-      - run: |
-          for attempt in 1 2 3; do
-            composer install --no-interaction --prefer-dist --no-progress && exit 0
-            echo "composer install falhou na tentativa ${attempt}; tentando novamente..."
-            sleep 5
-          done
-          exit 1
+      - run: composer install --no-interaction --prefer-dist --no-progress
         working-directory: backend
       - run: composer lint
         working-directory: backend
       - run: composer analyse
+        working-directory: backend
+      - name: Prepara a base real (habilita o grupo "dados")
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          cp ../censo.sqlite database/censo.sqlite
+          php artisan censo:preparar
         working-directory: backend
       - run: composer test
         working-directory: backend
@@ -67,16 +68,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          for attempt in 1 2 3; do
-            docker compose up --build --wait --wait-timeout 180 && exit 0
-            echo "docker compose falhou na tentativa ${attempt}; limpando e tentando novamente..."
-            docker compose down --remove-orphans || true
-            sleep 5
-          done
-          exit 1
+      - run: docker compose up --build --wait --wait-timeout 300
       - run: curl -fsS http://localhost:8080/api/health
       - run: curl -fsS -o /dev/null http://localhost:8080/estados/SP
       # Smoke das rotas de negócio será habilitado após o read model existir.
       # - run: curl -fsS http://localhost:8080/api/v1/ufs/SP | jq -e '.data.total_municipios == 645'
-      - run: docker compose down
+      - if: always()
+        run: docker compose down
