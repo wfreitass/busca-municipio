@@ -23,4 +23,4 @@
 
 ## 4. Verificação integrada
 
-- [ ] 4.1 [QA] `docker compose up --build` e percorrer os cenários da spec `tela-busca-estado` com SP (645), RR (15) e deep link `/estados/rr?pagina=1`; registrar falhas como tarefas de `fix:`
+- [x] 4.1 [QA] `docker compose up --build` e percorrer os cenários da spec `tela-busca-estado` com SP (645), RR (15) e deep link `/estados/rr?pagina=1`; registrar falhas como tarefas de `fix:`

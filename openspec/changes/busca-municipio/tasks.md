@@ -21,4 +21,4 @@
 
 ## 4. Verificação integrada
 
-- [ ] 4.1 [QA] `docker compose up --build` e percorrer manualmente todos os cenários da spec `tela-busca-municipio` (incluindo derrubar o backend para o cenário de erro); registrar falhas como tarefas de `fix:`
+- [x] 4.1 [QA] `docker compose up --build` e percorrer manualmente todos os cenários da spec `tela-busca-municipio` (incluindo derrubar o backend para o cenário de erro); registrar falhas como tarefas de `fix:`
