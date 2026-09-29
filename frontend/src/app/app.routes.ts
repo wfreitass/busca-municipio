@@ -1,10 +1,19 @@
 import { Routes } from '@angular/router';
 
+import { MunicipioStore } from './features/municipio/municipio.store';
+
+const carregarBuscaMunicipio = () =>
+  import('./features/municipio/busca-municipio.page').then((m) => m.BuscaMunicipioPage);
+
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'municipios' },
   {
     path: 'municipios',
-    loadComponent: () => import('./features/municipio/busca-municipio.page').then((m) => m.BuscaMunicipioPage),
+    providers: [MunicipioStore],
+    children: [
+      { path: '', loadComponent: carregarBuscaMunicipio },
+      { path: ':codigo', loadComponent: carregarBuscaMunicipio },
+    ],
   },
   {
     path: 'estados',

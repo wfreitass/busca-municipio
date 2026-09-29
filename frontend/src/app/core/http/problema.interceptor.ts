@@ -19,3 +19,12 @@ export function problemaInterceptor(request: HttpRequest<unknown>, next: HttpHan
     }),
   );
 }
+
+/** O `resource` do Angular pode embrulhar erros que não são `Error`; recupera o ApiErro original. */
+export function apiErroDe(erro: unknown): ApiErro | undefined {
+  const candidato = erro instanceof Error && erro.cause !== undefined ? erro.cause : erro;
+
+  return typeof candidato === 'object' && candidato !== null && 'status' in candidato
+    ? (candidato as ApiErro)
+    : undefined;
+}
