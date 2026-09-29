@@ -22,12 +22,12 @@ O sistema SHALL expor `GET /api/v1/ufs/{sigla}` (sigla de 2 letras, aceita maiú
 {
   "data": {
     "codigo": "35", "sigla": "SP", "nome": "São Paulo",
-    "populacao": 44411238, "area_km2": 248219.48, "densidade_hab_km2": 178.92,
+    "populacao": 44411238, "area_km2": 248219.49, "densidade_hab_km2": 178.92,
     "total_municipios": 645
   }
 }
 ```
-(valores ilustrativos). A densidade MUST ser `populacao / area_km2` da UF (não a média dos municípios), com 2 casas.
+(valores reais de SP no Censo 2022). A densidade MUST ser `populacao / area_km2` da UF (não a média dos municípios), com 2 casas.
 
 #### Scenario: UF existente
 - **WHEN** o cliente chama `GET /api/v1/ufs/SP`
@@ -46,13 +46,13 @@ O sistema SHALL expor `GET /api/v1/ufs/{sigla}/municipios` com parâmetros opcio
 ```json
 {
   "data": [
-    { "posicao": 1, "codigo": "3513801", "nome": "Diadema",
-      "populacao": 393237, "area_km2": 30.73, "densidade_hab_km2": 12796.52 }
+    { "posicao": 1, "codigo": "3552809", "nome": "Taboão da Serra",
+      "populacao": 273542, "area_km2": 20.39, "densidade_hab_km2": 13416.96 }
   ],
   "meta": { "pagina": 1, "por_pagina": 50, "total": 645, "total_paginas": 13 }
 }
 ```
-(valores ilustrativos). `posicao` MUST ser a posição global na UF (não o índice na página). Página além da última MUST retornar `data: []` com `meta` preenchido (não 404).
+(primeira página real de SP; Diadema é o 2º e Iporanga o 645º). `posicao` MUST ser a posição global na UF (não o índice na página). Página além da última MUST retornar `data: []` com `meta` preenchido (não 404).
 
 #### Scenario: Ordem decrescente de densidade
 - **WHEN** o cliente chama `GET /api/v1/ufs/SP/municipios`
@@ -84,5 +84,7 @@ O sistema SHALL expor `GET /api/v1/ufs/{sigla}/municipios` com parâmetros opcio
 - **THEN** recebe `404` em Problem Details
 
 #### Scenario: Densidade nula ao final
+Não ocorre no dado real (nenhum município tem área 0), mas a regra protege contra dados futuros e é coberta por fixture.
+
 - **WHEN** uma UF possui município com `densidade_hab_km2 = null`
 - **THEN** ele aparece nas últimas posições do ranking

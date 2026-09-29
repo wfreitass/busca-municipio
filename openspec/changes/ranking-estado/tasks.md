@@ -2,7 +2,7 @@
 
 ## 1. Contrato
 
-- [ ] 1.1 [BA] Conferir na base preparada: SP = 645 e RR = 15 municípios, e o município mais denso de SP; ajustar exemplos da spec `api-estados` se necessário; verificar `openspec validate ranking-estado` e conferir coerência com `docs/api/openapi.yaml` (`npx @redocly/cli lint docs/api/openapi.yaml`) — commit `docs(spec): confirma exemplos do ranking por uf`
+- [x] 1.1 [BA] Conferir na base preparada: SP = 645 e RR = 15 municípios, e o município mais denso de SP; ajustar exemplos da spec `api-estados` se necessário; verificar `openspec validate ranking-estado` e conferir coerência com `docs/api/openapi.yaml` (`npx @redocly/cli lint docs/api/openapi.yaml`) — commit `docs(spec): confirma exemplos do ranking por uf`
 - [ ] 1.2 [FRONT] Regenerar tipos (`npm run api:tipos`) e expor aliases em `core/api/censo.models.ts`; verificar `npm run build` — commit `feat(frontend): tipos do contrato de ufs`
 
 ## 2. API
