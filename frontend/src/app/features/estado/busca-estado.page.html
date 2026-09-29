@@ -1,0 +1,48 @@
+<h1>Busca por estado</h1>
+<p class="intro">Escolha uma unidade federativa para ver seus totais e o ranking dos municípios por densidade demográfica.</p>
+
+<mat-form-field appearance="outline" class="seletor" subscriptSizing="dynamic">
+  <mat-label>Estado</mat-label>
+  <mat-select [value]="store.sigla()" (selectionChange)="escolherUf($event.value)" placeholder="Selecione um estado">
+    @for (uf of store.ufs.value() ?? []; track uf.sigla) {
+      <mat-option [value]="uf.sigla">{{ uf.nome }} ({{ uf.sigla }})</mat-option>
+    }
+  </mat-select>
+</mat-form-field>
+
+@switch (store.estado()) {
+  @case ('sem-uf') {
+    <p class="aviso">Selecione um estado.</p>
+  }
+  @case ('carregando') {
+    <mat-progress-bar mode="indeterminate" aria-label="Carregando dados do estado" />
+  }
+  @case ('nao-encontrado') {
+    <p class="aviso" role="alert">Estado não encontrado.</p>
+  }
+  @case ('erro') {
+    <div class="aviso erro" role="alert">
+      <span>Não foi possível carregar os dados.</span>
+      <button mat-stroked-button type="button" (click)="store.tentarNovamente()">Tentar novamente</button>
+    </div>
+  }
+  @case ('pronto') {
+    @if (store.resumo.hasValue()) {
+      @let uf = store.resumo.value();
+      <h2>{{ uf.nome }} <span class="sigla">{{ uf.sigla }}</span></h2>
+      <app-uf-resumo [resumo]="uf" />
+
+      <h3>Municípios por densidade demográfica <span class="sub">do mais denso para o menos denso</span></h3>
+      @if (store.ranking.hasValue()) {
+        <app-ranking-municipios
+          [itens]="store.ranking.value().data"
+          [meta]="store.ranking.value().meta"
+          [carregando]="store.ranking.isLoading()"
+          (mudouPagina)="paginar($event)"
+        />
+      } @else {
+        <mat-progress-bar mode="indeterminate" aria-label="Carregando ranking" />
+      }
+    }
+  }
+}

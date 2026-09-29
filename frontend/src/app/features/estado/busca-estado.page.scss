@@ -1,0 +1,17 @@
+h1 { margin: 0; }
+.intro { color: var(--mat-sys-on-surface-variant); margin: 0.5rem 0 1.5rem; }
+.seletor { max-width: 360px; width: 100%; }
+h2 { font-size: 1.75rem; margin: 2rem 0 1rem; }
+h3 { font-size: 1.1rem; margin: 2rem 0 0.75rem; }
+.sub { color: var(--mat-sys-on-surface-variant); font-size: 0.85rem; font-weight: 400; margin-left: 0.5rem; }
+.sigla {
+  background: var(--mat-sys-secondary-container);
+  border-radius: 6px;
+  color: var(--mat-sys-on-secondary-container);
+  font-size: 0.9rem;
+  padding: 0.1rem 0.45rem;
+  vertical-align: middle;
+}
+mat-progress-bar { margin-top: 1.5rem; }
+.aviso { align-items: center; display: flex; gap: 1rem; margin-top: 1.5rem; }
+.erro { color: var(--mat-sys-error); }
