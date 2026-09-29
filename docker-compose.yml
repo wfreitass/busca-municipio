@@ -3,8 +3,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    ports:
-      - "8000:80"
+    # Sem porta publicada: a API é acessada pelo proxy do front em :8080/api (menos risco de conflito de porta).
     healthcheck:
       test: ["CMD", "curl", "-fs", "http://localhost/api/health"]
       interval: 5s
