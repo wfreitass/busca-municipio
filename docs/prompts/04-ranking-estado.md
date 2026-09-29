@@ -37,16 +37,16 @@ Execute com `/opsx:apply ranking-estado` SOMENTE as tarefas [BACK]: 2.1, 2.2 e 2
 
 Implementação:
 - UfController → RankingUfRequest → UfQuery (uf_resumo / municipio_resumo) → Resources.
-- GET /api/ufs → 27 UFs {codigo, sigla, nome} ordenadas por nome.
-- GET /api/ufs/{sigla} — where('sigla','[A-Za-z]{2}'); resolve com SiglasUf::codigo(strtoupper);
-  inexistente → 404 {"message":"UF não encontrada."}. densidade_hab_km2 vem de uf_resumo (soma/soma).
-- GET /api/ufs/{sigla}/municipios?pagina=&por_pagina= — pagina ≥1 (padrão 1), por_pagina 1..100 (padrão 50).
+- GET /api/v1/ufs → 27 UFs {codigo, sigla, nome} ordenadas por nome.
+- GET /api/v1/ufs/{sigla} — where('sigla','[A-Za-z]{2}'); resolve com SiglasUf::codigo(strtoupper);
+  inexistente → abort(404, 'UF não encontrada.') (Problem Details pelo handler central). densidade_hab_km2 vem de uf_resumo (soma/soma).
+- GET /api/v1/ufs/{sigla}/municipios?pagina=&por_pagina= — pagina ≥1 (padrão 1), por_pagina 1..100 (padrão 50).
   ORDER BY posicao_densidade_uf LIMIT/OFFSET usando o índice (cd_uf, posicao_densidade_uf); só consultavel=1.
   meta = {pagina, por_pagina, total (uf_resumo.total_municipios), total_paginas = ceil(total/por_pagina)}.
   Página além do fim → 200 com data []. NÃO use LengthAwarePaginator (formato próprio, enxuto, pt-BR).
 - `posicao` é a posição global (vem pronta do read model).
 
-Verificação: curl 'localhost:8000/api/ufs/SP/municipios?pagina=2' | jq '.data[0].posicao' → 51.
+Verificação: curl 'localhost:8000/api/v1/ufs/SP/municipios?pagina=2' | jq '.data[0].posicao' → 51.
 Um commit por tarefa.
 ```
 
@@ -87,18 +87,18 @@ Leia: specs/api-estados/spec.md, specs/tela-busca-estado/spec.md, tasks.md.
 
 Tarefa 2.4 (PHPUnit Feature com fixture: 2–3 UFs, uma com ~7 municípios para testar paginação com por_pagina=3,
 e um município com densidade null):
-  /api/ufs ordenado por nome · resumo 200 · sigla minúscula 200 · XX → 404 JSON ·
+  /api/v1/ufs ordenado por nome · resumo 200 · sigla minúscula 200 · XX → 404 JSON ·
   ranking decrescente · pagina=2&por_pagina=3 → primeira posicao = 4 · última página parcial ·
   página além do fim → data [] e meta.total correto · por_pagina=500 / pagina=0 / pagina=abc → 422 ·
   densidade null na última posição · XX/municipios → 404.
 
 Tarefa 3.6 (Vitest):
-  CensoApiService.ranking('SP', 2, 50) → GET /api/ufs/SP/municipios com params pagina=2 e por_pagina=50 ·
+  CensoApiService.ranking('SP', 2, 50) → GET /api/v1/ufs/SP/municipios com params pagina=2 e por_pagina=50 ·
   RankingMunicipiosComponent com input de 2 itens (posicao 51 e 52) e meta.total=645 renderiza "51"
   e o paginador com length 645.
 
 Tarefa 4.1 (manual, docker compose up --build): /estados; selecionar SP (645, posições 1–50);
-página 2 (URL ?pagina=2, posições 51–100, Network sem nova chamada a /api/ufs/SP);
+página 2 (URL ?pagina=2, posições 51–100, Network sem nova chamada a /api/v1/ufs/SP);
 trocar para AC (volta à página 1); /estados/rr direto (15 numa página); /estados/XX;
 backend parado → mensagem de erro + retry.
 

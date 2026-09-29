@@ -7,9 +7,10 @@
 ## 2. Back-end
 
 - [ ] 2.1 [BACK] Criar projeto Laravel 12 em `backend/` (`composer create-project laravel/laravel backend`), remover migrations/seeders padrão de users/cache/jobs; verificar `php artisan --version` — commit `chore(backend): cria projeto laravel`
-- [ ] 2.2 [BACK] Registrar `routes/api.php` em `bootstrap/app.php`, forçar JSON em exceções de `api/*`, criar `GET /api/health` → `{"status":"ok"}`; ajustar `.env.example` conforme design D4; verificar com `curl localhost:8000/api/health` e `curl localhost:8000/api/nao-existe` (404 JSON) — commit `feat(backend): endpoint de health e api sem estado`
-- [ ] 2.3 [QA] Teste feature `HealthTest` (200 + JSON) e teste de rota inexistente (404 JSON); verificar `php artisan test` verde — commit `test(backend): health e 404 json`
-- [ ] 2.4 [BACK] `backend/Dockerfile` (composer stage → `php:8.3-apache`, DocumentRoot `public/`, `a2enmod rewrite`, `key:generate` no build, permissões de `storage/`); verificar `docker build -f backend/Dockerfile .` — commit `build(backend): dockerfile apache`
+- [ ] 2.2 [BACK] Registrar `routes/api.php` em `bootstrap/app.php`, criar `GET /api/health` → `{"status":"ok"}`; ajustar `.env.example` conforme design D4; verificar com `curl localhost:8000/api/health` e `curl localhost:8000/api/nao-existe` — commit `feat(backend): endpoint de health e api sem estado`
+- [ ] 2.3 [BACK] Convenções da API (design D7–D9): grupo `/api/v1` com `cache.headers:public;max_age=86400;etag`, handler único de Problem Details para `api/*`; rota de exemplo temporária não é necessária — validar com `/api/v1/nao-existe` (404 problem+json) — commit `feat(backend): convencoes da api (v1, problem details, cache http)`
+- [ ] 2.4 [QA] Testes feature: `HealthTest` (200 + JSON); `/api/nao-existe` e `/api/v1/nao-existe` → 404 `application/problem+json` com `status` e `detail`; 500 forçado (rota fake registrada só no teste) sem stack trace; rota fake GET em `/api/v1` registrada só no teste → `Cache-Control: public, max-age=86400` + `ETag`, e `If-None-Match` → 304; 404/422 sem `Cache-Control: public` — commit `test(backend): health, formato de erro e cache http`
+- [ ] 2.5 [BACK] `backend/Dockerfile` (composer stage → `php:8.3-apache`, DocumentRoot `public/`, `a2enmod rewrite`, `key:generate` no build, permissões de `storage/`); verificar `docker build -f backend/Dockerfile .` — commit `build(backend): dockerfile apache`
 
 ## 3. Front-end
 

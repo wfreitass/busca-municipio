@@ -6,8 +6,8 @@
 
 ## What Changes
 
-- `GET /api/municipios?q=&limite=` — autocomplete por nome, insensível a acento/caixa, com UF no rótulo.
-- `GET /api/municipios/{codigo}` — resumo do município: população, setores (total/urbanos/rurais/sem classificação), área, densidade e distribuição por sexo.
+- `GET /api/v1/municipios?q=&limite=` — autocomplete por nome, insensível a acento/caixa, com UF no rótulo.
+- `GET /api/v1/municipios/{codigo}` — resumo do município: população, setores (total/urbanos/rurais/sem classificação), área, densidade e distribuição por sexo.
 - Tela **Busca de municípios** (`/municipios` e `/municipios/:codigo`) com campo de autocomplete e painel de indicadores abaixo.
 
 ## Capabilities

@@ -32,12 +32,16 @@ Você é o dev back-end da change OpenSpec `infraestrutura-base`.
 
 Leia: docs/ARQUITETURA.md (§2 e §4), openspec/changes/infraestrutura-base/design.md (D1–D6) e tasks.md.
 
-Execute com `/opsx:apply infraestrutura-base` SOMENTE as tarefas marcadas [BACK]: 1.1, 2.1, 2.2, 2.4 e 4.1.
+Execute com `/opsx:apply infraestrutura-base` SOMENTE as tarefas marcadas [BACK]: 1.1, 2.1, 2.2, 2.3, 2.5 e 4.1.
 
 Restrições obrigatórias:
 - Laravel 12 em backend/. NÃO rode `php artisan install:api`; registre routes/api.php em bootstrap/app.php.
 - .env.example com SESSION_DRIVER=array, CACHE_STORE=array, QUEUE_CONNECTION=sync, LOG_CHANNEL=stderr, APP_DEBUG=false.
-- Exceções em api/* sempre em JSON. GET /api/health → {"status":"ok"}.
+- GET /api/health → {"status":"ok"} (fora do versionamento).
+- Rotas de negócio sob Route::prefix('v1') com middleware 'cache.headers:public;max_age=86400;etag' (nativo do Laravel).
+- Handler ÚNICO em bootstrap/app.php (withExceptions) para api/*: Problem Details RFC 9457,
+  Content-Type application/problem+json, campos type/title/status/detail; 422 com `errors`;
+  500 com detail genérico (sem stack trace/SQL/caminho). Controllers só fazem abort(404, '...').
 - Dockerfile do backend com contexto de build na RAIZ do repo (vai precisar do censo.sqlite na próxima change).
   Base php:8.3-apache, DocumentRoot em public/, a2enmod rewrite, composer via stage composer:2, key:generate no build.
   Mantenha dev-deps na imagem final (para `docker compose run --rm backend php artisan test`).
@@ -82,8 +86,9 @@ Você é o QA da change OpenSpec `infraestrutura-base`. Testes devem ser SIMPLES
 
 Leia: openspec/changes/infraestrutura-base/specs/infraestrutura/spec.md e tasks.md.
 
-Execute as tarefas [QA]: 2.3, 3.4 e 4.2.
-- 2.3 (PHPUnit, tests/Feature/HealthTest.php): GET /api/health → 200 + {"status":"ok"}; GET /api/nao-existe → 404 JSON.
+Execute as tarefas [QA]: 2.4, 3.4 e 4.2.
+- 2.4 (PHPUnit): GET /api/health → 200 + {"status":"ok"}; /api/nao-existe e /api/v1/nao-existe → 404
+  application/problem+json com status e detail; rota fake que lança exceção (registrada só no teste) → 500 sem stack trace.
 - 3.4 (Vitest): CensoApiService.health() faz GET em '/api/health' (HttpTestingController).
 - 4.2 (verificação integrada, sem código): num diretório temporário,
     git clone <repo> t && cd t && docker compose up --build -d

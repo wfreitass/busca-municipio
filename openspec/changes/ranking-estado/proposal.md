@@ -6,9 +6,9 @@ Segunda tela exigida: escolher uma UF e ver seus municípios ranqueados por dens
 
 ## What Changes
 
-- `GET /api/ufs` — lista das 27 UFs para o seletor.
-- `GET /api/ufs/{sigla}` — resumo da UF: população, área, densidade, total de municípios.
-- `GET /api/ufs/{sigla}/municipios?pagina=&por_pagina=` — ranking por densidade **paginado no servidor**, com posição global no ranking.
+- `GET /api/v1/ufs` — lista das 27 UFs para o seletor.
+- `GET /api/v1/ufs/{sigla}` — resumo da UF: população, área, densidade, total de municípios.
+- `GET /api/v1/ufs/{sigla}/municipios?pagina=&por_pagina=` — ranking por densidade **paginado no servidor**, com posição global no ranking.
 - Tela **Busca por estado** (`/estados` e `/estados/:sigla?pagina=N`) com seletor de UF, cards de totais e tabela paginada.
 
 ## Capabilities

@@ -56,4 +56,4 @@ O back-end MUST NOT depender de sessão, cache ou fila persistidos em banco, e o
 
 #### Scenario: Erros retornam JSON
 - **WHEN** um cliente chama uma rota inexistente sob `/api/`
-- **THEN** recebe `404` com corpo JSON (não HTML)
+- **THEN** recebe `404` em JSON no formato Problem Details (não HTML) — ver `convencoes-api`

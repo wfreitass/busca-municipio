@@ -34,8 +34,8 @@ Commits: `docs: ...` por seção e `docs(spec): arquiva changes concluidas`.
 
 ```text
 Você é o dev back-end na change `documentacao-entrega`. Execute a tarefa [BACK] 1.2:
-No README, seção "API": tabela com as 6 rotas (GET /api/health, /api/municipios, /api/municipios/{codigo},
-/api/ufs, /api/ufs/{sigla}, /api/ufs/{sigla}/municipios), parâmetros, códigos de resposta e um exemplo curl
+No README, seção "API": tabela com as 6 rotas (GET /api/health, /api/v1/municipios, /api/v1/municipios/{codigo},
+/api/v1/ufs, /api/v1/ufs/{sigla}, /api/v1/ufs/{sigla}/municipios), parâmetros, códigos de resposta e um exemplo curl
 por rota (via http://localhost:8080/api/... — mesma origem). Seção "Testes do back-end":
 `docker compose run --rm backend php artisan test` (e `--group=dados` para os totais do IBGE).
 Execute CADA comando que documentar e cole a saída resumida no PR/commit. Commit: `docs: rotas da api e testes do backend`.

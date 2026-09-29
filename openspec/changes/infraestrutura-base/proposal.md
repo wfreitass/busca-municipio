@@ -11,12 +11,14 @@ O avaliador vai clonar o repositório numa máquina que só tem Docker e rodar *
 - Imagem do front-end multi-stage (`node:22-alpine` → `nginx:alpine`) servindo o build do Angular e fazendo proxy de `/api/` para o back-end.
 - Endpoint `GET /api/health` para _healthcheck_ e para o front-end aguardar o back-end.
 - Configuração do Laravel adequada a uma API sem estado e somente leitura (sem session/cache/queue em banco).
+- Convenções transversais da API: prefixo `/api/v1`, erros em Problem Details (RFC 9457) e cache HTTP (`Cache-Control` + `ETag`/`304`) para respostas imutáveis.
 - `.gitignore`/`.dockerignore` coerentes (sem `vendor/`, `node_modules/`, `.env`).
 
 ## Capabilities
 
 ### New Capabilities
 - `infraestrutura`: subida da aplicação completa com um comando, roteamento front ↔ API na mesma origem e verificação de saúde.
+- `convencoes-api`: versionamento, formato de erro e cache HTTP comuns a todas as rotas de negócio.
 
 ### Modified Capabilities
 - Nenhuma.

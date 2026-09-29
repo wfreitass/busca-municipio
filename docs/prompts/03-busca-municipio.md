@@ -38,18 +38,18 @@ Execute com `/opsx:apply busca-municipio` SOMENTE as tarefas [BACK]: 2.1 e 2.2.
 Implementação:
 - Camadas: MunicipioController (fino) → BuscarMunicipiosRequest → MunicipioQuery (Query Builder, só
   municipio_resumo JOIN uf_resumo) → MunicipioSugestaoResource / MunicipioResumoResource.
-- GET /api/municipios?q=&limite=  — trim em prepareForValidation; q 2..60; limite 1..20 (padrão 10).
+- GET /api/v1/municipios?q=&limite=  — trim em prepareForValidation; q 2..60; limite 1..20 (padrão 10).
   Busca atrás da porta MunicipioSearch (interface) com adaptador Fts5MunicipioSearch, ligado no AppServiceProvider.
   Termo normalizado com o MESMO NormalizadorTexto da preparação. Palavras com ≥3 letras → MATCH, cada uma
   entre aspas ("paulo" "sao") — AND em qualquer ordem e sem injeção de sintaxe FTS. Palavras <3 letras →
   nm_busca LIKE '%w%' ESCAPE '\'. Nenhuma palavra ≥3 → só LIKE.
   NÃO confie no bm25: ORDER BY CASE exato=0 / prefixo=1 / contém=2, populacao DESC, nm_busca.
-- GET /api/municipios/{codigo} — where('codigo','[0-9]{7}'); não encontrado/não consultável →
-  404 {"message":"Município não encontrado."}.
+- GET /api/v1/municipios/{codigo} — where('codigo','[0-9]{7}'); não encontrado/não consultável →
+  abort(404, 'Município não encontrado.') — o handler central gera o Problem Details.
 - Códigos IBGE SEMPRE string no JSON. Arredondamento (2 casas) só no Resource. Percentuais de sexo sobre
   homens+mulheres; null se a soma for 0. `rotulo` = "Nome - SIGLA".
 
-Verificação manual: curl 'localhost:8000/api/municipios?q=sao%20paulo' e curl localhost:8000/api/municipios/3550308.
+Verificação manual: curl 'localhost:8000/api/v1/municipios?q=sao%20paulo' e curl localhost:8000/api/v1/municipios/3550308.
 Um commit por tarefa (mensagens em tasks.md).
 ```
 
@@ -97,7 +97,7 @@ um nome com apóstrofo):
   detalhe 200 e soma dos setores fecha · 9999999 → 404 JSON · "abc" → 404 · não consultável → 404.
 
 Tarefa 3.5 (Vitest):
-  CensoApiService.buscarMunicipios('sao', 10) → GET /api/municipios com params q e limite ·
+  CensoApiService.buscarMunicipios('sao', 10) → GET /api/v1/municipios com params q e limite ·
   MunicipioResumoComponent renderiza "11.451.999", "—" para densidade null, e NÃO renderiza
   "sem classificação" quando 0.
 

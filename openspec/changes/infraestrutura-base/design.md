@@ -54,6 +54,20 @@ frontend:
 ### D6. Testes do back-end rodam na mesma imagem
 Um _target_ `test` no `backend/Dockerfile` (com `composer install` incluindo dev) permite `docker compose run --rm backend-test` ou, mais simples, `docker compose run --rm backend php artisan test` se o stage final mantiver as dev-deps. Decisão: **manter dev-deps no stage final** (imagem ~15 MB maior, zero complexidade extra). Alternativa descartada: stage separado — complexidade desnecessária para um teste técnico.
 
+### D7. Versionamento `/api/v1` por grupo de rotas
+`Route::prefix('v1')->middleware('cache.headers:public;max_age=86400;etag')->group(...)` em `routes/api.php`; `/api/health` fica fora do grupo. O front usa `apiBaseUrl = '/api/v1'`.
+- Alternativa descartada: versão por header (`Accept: application/vnd…`) — invisível no navegador e no curl, pior para depurar e para cache de proxy.
+
+### D8. Problem Details (RFC 9457) centralizado
+Um único `render` em `bootstrap/app.php` (`withExceptions`) para `api/*` converte `ValidationException` → 422 com `errors`, `NotFoundHttpException`/`ModelNotFound` → 404, `HttpException` → seu status, e `Throwable` → 500 genérico (o detalhe vai só para o log em `stderr`). Controllers apenas lançam `abort(404, 'Município não encontrado.')`.
+- Alternativa descartada: formato próprio `{message}` — funciona, mas é mais um formato a documentar; RFC 9457 é padrão que clientes e gateways entendem.
+
+### D9. Cache HTTP com o middleware nativo `cache.headers`
+O Laravel já calcula `ETag` (md5 do corpo) e devolve `304` quando `If-None-Match` confere (`SetCacheHeaders` + `isNotModified`). Zero código próprio. Aplica-se só a `200` (erros passam pelo handler de exceção e não herdam o cabeçalho — verificar em teste).
+- Por que é seguro: o dado é imutável dentro de uma imagem; nova imagem ⇒ novo corpo ⇒ novo `ETag`.
+- Ganho de escala: navegador, nginx ou CDN podem responder sem chegar ao PHP.
+- Alternativa descartada: cache em Redis — adiciona serviço para um dado que já é lido de tabela pequena e indexada.
+
 ## Risks / Trade-offs
 
 - [Porta 8080 ocupada na máquina do avaliador] → documentar no README como trocar (`FRONT_PORT=… docker compose up`), usando `"${FRONT_PORT:-8080}:80"`.

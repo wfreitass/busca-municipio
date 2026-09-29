@@ -40,7 +40,7 @@ SELECT … FROM municipio_busca b
 - **Porta e adaptador só aqui**: `interface MunicipioSearch { buscar(string $termo, int $limite): list<MunicipioSugestao> }`, implementada por `Fts5MunicipioSearch` e ligada em `AppServiceProvider`. Trocar por `MeilisearchMunicipioSearch` = nova classe + uma linha de binding, sem tocar em controller, contrato ou front. O restante da API **não** ganha interface (não há variação prevista — abstração sem motivo é custo).
 
 ### D2. Validação via FormRequest
-`BuscarMunicipiosRequest`: `q => required|string|min:2|max:60` (aplicado após `trim`, via `prepareForValidation`), `limite => sometimes|integer|between:1,20`. Resposta 422 padrão do Laravel (`message` + `errors`).
+`BuscarMunicipiosRequest`: `q => required|string|min:2|max:60` (aplicado após `trim`, via `prepareForValidation`), `limite => sometimes|integer|between:1,20`. Resposta 422 em Problem Details pelo handler central (infraestrutura-base D8).
 
 ### D3. Detalhe com restrição de rota
 `Route::get('municipios/{codigo}', …)->where('codigo', '[0-9]{7}')`. Qualquer outro formato cai no fallback 404 JSON. `MunicipioQuery::detalhe()` retorna `null` → controller lança `abort(404, 'Município não encontrado.')`.
@@ -61,7 +61,7 @@ termo$ = toObservable(this.termo).pipe(
 - Quando o valor do controle vira objeto (item selecionado) o stream ignora (`filter(typeof === 'string')`).
 
 ### D6. Front — página dirige o estado pela URL
-`BuscaMunicipioPage` lê `codigo` via `input()` (`withComponentInputBinding()`), e um `effect`/`rxResource` carrega `GET /api/municipios/{codigo}`. Estados: `ocioso | carregando | sucesso | nao-encontrado | erro`. `MunicipioResumoComponent` é puramente de apresentação (`input.required<MunicipioResumo>()`).
+`BuscaMunicipioPage` lê `codigo` via `input()` (`withComponentInputBinding()`), e um `effect`/`rxResource` carrega `GET /api/v1/municipios/{codigo}`. Estados: `ocioso | carregando | sucesso | nao-encontrado | erro`. `MunicipioResumoComponent` é puramente de apresentação (`input.required<MunicipioResumo>()`).
 
 ### D7. Layout dos indicadores
 Grid responsivo de `indicador-card` (rótulo + valor + sub-rótulo): População · Setores · Área · Densidade. Abaixo, duas seções: **Situação dos setores** (urbanos/rurais/sem classificação, com barra horizontal proporcional em CSS puro) e **População por sexo** (homens/mulheres/não informado, com barra proporcional). Sem biblioteca de gráficos.

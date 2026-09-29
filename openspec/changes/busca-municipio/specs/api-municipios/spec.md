@@ -7,7 +7,7 @@ Expor via HTTP a busca de municípios por nome (para autocomplete) e o resumo ag
 ## ADDED Requirements
 
 ### Requirement: Busca de municípios por nome
-O sistema SHALL expor `GET /api/municipios` com os parâmetros:
+O sistema SHALL expor `GET /api/v1/municipios` com os parâmetros:
 - `q` (obrigatório): texto com 2 a 60 caracteres após `trim`;
 - `limite` (opcional): inteiro de 1 a 20, padrão 10.
 
@@ -29,7 +29,7 @@ A busca MUST ser insensível a caixa, acentos, apóstrofos e hífens, e MUST con
 `codigo` e `uf.codigo` MUST ser strings.
 
 #### Scenario: Busca sem acento encontra nome acentuado
-- **WHEN** o cliente chama `GET /api/municipios?q=sao paulo`
+- **WHEN** o cliente chama `GET /api/v1/municipios?q=sao paulo`
 - **THEN** recebe `200` e o primeiro item é `São Paulo - SP` (código `3550308`)
 
 #### Scenario: Homônimos identificados pela UF
@@ -38,31 +38,31 @@ A busca MUST ser insensível a caixa, acentos, apóstrofos e hífens, e MUST con
 - **AND** nenhum par de itens possui o mesmo `codigo`
 
 #### Scenario: Apóstrofo e hífen
-- **WHEN** o cliente chama `GET /api/municipios?q=olho d agua`
+- **WHEN** o cliente chama `GET /api/v1/municipios?q=olho d agua`
 - **THEN** os resultados incluem municípios cujo nome é `Alta Floresta D'Oeste - RO`
 
 #### Scenario: Palavras em qualquer ordem
-- **WHEN** o cliente chama `GET /api/municipios?q=paulo sao`
+- **WHEN** o cliente chama `GET /api/v1/municipios?q=paulo sao`
 - **THEN** `São Paulo - SP` está entre os resultados
 
 #### Scenario: Termo de duas letras
-- **WHEN** o cliente chama `GET /api/municipios?q=sp`
+- **WHEN** o cliente chama `GET /api/v1/municipios?q=sp`
 - **THEN** recebe `200` com municípios cujo nome normalizado contém `sp` (ex.: `Espigão D'Oeste - RO`)
 
 #### Scenario: Sintaxe de busca digitada pelo usuário
-- **WHEN** o cliente chama `GET /api/municipios?q=sao* OR -paulo`
+- **WHEN** o cliente chama `GET /api/v1/municipios?q=sao* OR -paulo`
 - **THEN** recebe `200` (nunca `500`), tratando o texto como palavras comuns
 
 #### Scenario: Termo curto demais
-- **WHEN** o cliente chama `GET /api/municipios?q=s`
-- **THEN** recebe `422` com o erro de validação no campo `q`
+- **WHEN** o cliente chama `GET /api/v1/municipios?q=s`
+- **THEN** recebe `422` em Problem Details com `errors.q` preenchido
 
 #### Scenario: Sem resultados
 - **WHEN** o termo não corresponde a nenhum município (ex.: `q=xyzxyz`)
 - **THEN** recebe `200` com `{"data": []}`
 
 #### Scenario: Limite
-- **WHEN** o cliente chama `GET /api/municipios?q=santa&limite=5`
+- **WHEN** o cliente chama `GET /api/v1/municipios?q=santa&limite=5`
 - **THEN** recebe no máximo 5 itens
 - **AND** `limite=50` resulta em `422`
 
@@ -79,7 +79,7 @@ Os resultados SHALL ser ordenados por: (1) nome normalizado igual ao termo, (2) 
 - **THEN** `São Paulo - SP` vem antes de municípios menores que também começam com `São`
 
 ### Requirement: Resumo do município
-O sistema SHALL expor `GET /api/municipios/{codigo}` onde `codigo` é o código IBGE de 7 dígitos, retornando `200`:
+O sistema SHALL expor `GET /api/v1/municipios/{codigo}` onde `codigo` é o código IBGE de 7 dígitos, retornando `200`:
 
 ```json
 {
@@ -101,16 +101,16 @@ O sistema SHALL expor `GET /api/municipios/{codigo}` onde `codigo` é o código 
 (valores ilustrativos; os reais vêm do read model). `area_km2` com 2 casas, `densidade_hab_km2` com 2 casas ou `null`, percentuais com 2 casas ou `null` quando `homens + mulheres = 0`.
 
 #### Scenario: Município existente
-- **WHEN** o cliente chama `GET /api/municipios/3550308`
+- **WHEN** o cliente chama `GET /api/v1/municipios/3550308`
 - **THEN** recebe `200` com todos os campos acima preenchidos
 - **AND** `setores.urbanos + setores.rurais + setores.sem_classificacao = setores.total`
 
 #### Scenario: Código inexistente
-- **WHEN** o cliente chama `GET /api/municipios/9999999`
-- **THEN** recebe `404` com corpo JSON `{"message": "Município não encontrado."}`
+- **WHEN** o cliente chama `GET /api/v1/municipios/9999999`
+- **THEN** recebe `404` em Problem Details (`convencoes-api`) com `detail: "Município não encontrado."`
 
 #### Scenario: Código mal formado
-- **WHEN** o cliente chama `GET /api/municipios/abc`
+- **WHEN** o cliente chama `GET /api/v1/municipios/abc`
 - **THEN** recebe `404` com corpo JSON
 
 #### Scenario: Registro não consultável
