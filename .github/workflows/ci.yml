@@ -28,7 +28,13 @@ jobs:
           extensions: pdo_sqlite
           tools: composer
           coverage: none
-      - run: composer install --no-interaction --prefer-dist
+      - run: |
+          for attempt in 1 2 3; do
+            composer install --no-interaction --prefer-dist --no-progress && exit 0
+            echo "composer install falhou na tentativa ${attempt}; tentando novamente..."
+            sleep 5
+          done
+          exit 1
         working-directory: backend
       - run: composer lint
         working-directory: backend
@@ -61,7 +67,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker compose up --build --wait --wait-timeout 180
+      - run: |
+          for attempt in 1 2 3; do
+            docker compose up --build --wait --wait-timeout 180 && exit 0
+            echo "docker compose falhou na tentativa ${attempt}; limpando e tentando novamente..."
+            docker compose down --remove-orphans || true
+            sleep 5
+          done
+          exit 1
       - run: curl -fsS http://localhost:8080/api/health
       - run: curl -fsS -o /dev/null http://localhost:8080/estados/SP
       # Smoke das rotas de negócio será habilitado após o read model existir.
