@@ -21,4 +21,4 @@
 ## 4. Integração no build
 
 - [x] 4.1 [BACK] Dockerfile: `COPY censo.sqlite`, `RUN php artisan censo:preparar`, `chmod 0444`; `config/database.php` apontando para a cópia; verificar `docker compose build backend` e `docker compose run --rm backend php artisan test --group=dados` — commit `build(backend): prepara base do censo no build`
-- [ ] 4.2 [QA] Verificar `git status` limpo após o build (arquivo da raiz intocado) e `md5sum censo.sqlite` igual ao original
+- [x] 4.2 [QA] Verificar `git status` limpo após o build (arquivo da raiz intocado) e `md5sum censo.sqlite` igual ao original

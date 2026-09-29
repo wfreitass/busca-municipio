@@ -26,4 +26,4 @@
 ## 4. Orquestração
 
 - [x] 4.1 [BACK] `docker-compose.yml` com `backend` (healthcheck) e `frontend` (`depends_on: service_healthy`, `${FRONT_PORT:-8080}:80`); verificar `docker compose up --build` + `curl localhost:8080/api/health` + abrir `localhost:8080/estados/SP` direto — commit `build: docker compose com um comando`
-- [ ] 4.2 [QA] Teste de clone limpo: `git clone` para pasta temporária, `docker compose up --build`, validar cenários da spec `infraestrutura` e `git status` limpo; registrar resultado no PR/commit — commit `test: valida subida em clone limpo` (se houver ajuste)
+- [x] 4.2 [QA] Teste de clone limpo: `git clone` para pasta temporária, `docker compose up --build`, validar cenários da spec `infraestrutura` e `git status` limpo; registrar resultado no PR/commit — commit `test: valida subida em clone limpo` (se houver ajuste)
