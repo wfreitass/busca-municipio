@@ -1,0 +1,7 @@
+extends:
+  - recommended
+rules:
+  # O servidor documentado é o do docker compose local, de propósito.
+  no-server-example.com: off
+  # /api/health e /api/v1/ufs não possuem erro 4xx legítimo (sem parâmetros).
+  operation-4xx-response: off

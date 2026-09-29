@@ -21,7 +21,8 @@ Tarefa 1.1:
    homônimos reais (ex.: SELECT nm_mun, GROUP_CONCAT(sigla_uf) FROM municipio_resumo GROUP BY nm_mun HAVING COUNT(*)>2),
    um nome real com apóstrofo, população real de São Paulo (3550308).
 3. Confirme os estados de UX: vazio, carregando, nenhum resultado, não encontrado, erro com retry.
-4. Rode `npx @fission-ai/openspec validate busca-municipio --strict`.
+4. Garanta que os exemplos da spec e do docs/api/openapi.yaml são coerentes; rode `npx @redocly/cli lint docs/api/openapi.yaml`.
+5. Rode `npx @fission-ai/openspec validate busca-municipio --strict`.
 
 Não escreva código. Commit: `docs(spec): confirma exemplos reais da busca de municipios`.
 ```
@@ -31,7 +32,7 @@ Não escreva código. Commit: `docs(spec): confirma exemplos reais da busca de m
 ```text
 Você é o dev back-end da change OpenSpec `busca-municipio`.
 
-Leia: specs/api-municipios/spec.md (contrato EXATO do JSON), design.md (D1–D4), tasks.md, docs/ARQUITETURA.md §2.
+Leia: specs/api-municipios/spec.md (comportamento) e docs/api/openapi.yaml (contrato EXATO — as respostas serão validadas contra ele), design.md (D1–D4), tasks.md, docs/ARQUITETURA.md §2.
 
 Execute com `/opsx:apply busca-municipio` SOMENTE as tarefas [BACK]: 2.1 e 2.2.
 

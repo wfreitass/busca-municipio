@@ -32,7 +32,7 @@ Você é o dev back-end da change OpenSpec `infraestrutura-base`.
 
 Leia: docs/ARQUITETURA.md (§2 e §4), openspec/changes/infraestrutura-base/design.md (D1–D6) e tasks.md.
 
-Execute com `/opsx:apply infraestrutura-base` SOMENTE as tarefas marcadas [BACK]: 1.1, 2.1, 2.2, 2.3, 2.5 e 4.1.
+Execute com `/opsx:apply infraestrutura-base` SOMENTE as tarefas marcadas [BACK]: 1.1, 2.1, 2.2, 2.3, 2.4b, 2.5 e 4.1.
 
 Restrições obrigatórias:
 - Laravel 12 em backend/. NÃO rode `php artisan install:api`; registre routes/api.php em bootstrap/app.php.
@@ -49,6 +49,9 @@ Restrições obrigatórias:
   porta "${FRONT_PORT:-8080}:80".
 - .gitattributes com `* text=auto eol=lf` e `*.sqlite binary`. Nenhum .env versionado.
 
+- Tarefa 2.4b: osteel/openapi-httpfoundation-testing (dev) + trait ValidaContratoOpenApi lendo docs/api/openapi.yaml
+  (copie o arquivo para a imagem no Dockerfile). O contrato é OAS 3.0.3 de propósito.
+
 Definição de pronto: cada tarefa com verificação executada, checkbox marcado em tasks.md e um commit
 Conventional Commits por tarefa (mensagens sugeridas em tasks.md).
 ```
@@ -60,7 +63,10 @@ Você é o dev front-end da change OpenSpec `infraestrutura-base`.
 
 Leia: docs/ARQUITETURA.md (§3 e §4), openspec/changes/infraestrutura-base/design.md (D3) e tasks.md.
 
-Execute com `/opsx:apply infraestrutura-base` SOMENTE as tarefas [FRONT]: 3.1, 3.2, 3.3 e 3.5.
+Execute com `/opsx:apply infraestrutura-base` SOMENTE as tarefas [FRONT]: 3.1, 3.2, 3.2b, 3.3 e 3.5.
+
+Contrato primeiro: tipos da API são GERADOS de docs/api/openapi.yaml (`npm run api:tipos` com openapi-typescript →
+src/app/core/api/schema.ts, versionado). Nunca escreva à mão uma interface que o contrato já define.
 
 Restrições obrigatórias:
 - Angular 20+ standalone, sem SSR, SCSS, Angular Material. Test runner: Vitest (builder do Angular CLI);

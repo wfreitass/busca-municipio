@@ -24,6 +24,7 @@ BA (valida a spec contra o dado/enunciado)  →  BACK  →  FRONT  →  QA (test
 
 ## Regras comuns a todos os papéis
 
+0. O contrato HTTP é `docs/api/openapi.yaml` (contrato primeiro). Nenhuma rota, campo ou código de status existe fora dele.
 1. Leia antes de agir: `docs/ARQUITETURA.md`, `openspec/config.yaml` e os artefatos da change (`proposal.md`, `design.md`, `specs/**/spec.md`, `tasks.md`).
 2. Use o fluxo do OpenSpec: `/opsx:apply <change>` para implementar; marque `- [x]` em `tasks.md` ao concluir cada tarefa.
 3. **Um commit por tarefa**, Conventional Commits, com a mensagem sugerida na própria tarefa. Nunca squash.

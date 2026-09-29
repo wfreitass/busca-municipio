@@ -68,6 +68,13 @@ O Laravel já calcula `ETag` (md5 do corpo) e devolve `304` quando `If-None-Matc
 - Ganho de escala: navegador, nginx ou CDN podem responder sem chegar ao PHP.
 - Alternativa descartada: cache em Redis — adiciona serviço para um dado que já é lido de tabela pequena e indexada.
 
+### D10. Contrato primeiro: `docs/api/openapi.yaml` é a fonte da verdade do HTTP
+O contrato OpenAPI 3.0.3 foi escrito **antes** do código, junto com as specs, e passa em `npx @redocly/cli lint` (regras em `redocly.yaml`).
+- **Front:** os tipos TypeScript são **gerados** a partir dele (`npm run api:tipos` → `openapi-typescript ../docs/api/openapi.yaml -o src/app/core/api/schema.ts`, arquivo versionado). `censo.models.ts` só reexporta aliases legíveis (`type MunicipioResumo = components['schemas']['MunicipioResumo']`). Mudou o contrato ⇒ o `ng build` quebra onde o front ficou desatualizado.
+- **Back:** um teste de contrato (`ContratoOpenApiTest`) valida as respostas reais de cada rota contra o contrato com `osteel/openapi-httpfoundation-testing` (usa `league/openapi-psr7-validator`, que exige OAS 3.0 — por isso 3.0.3 e não 3.1).
+- Divisão de responsabilidades: a **spec OpenSpec** diz *o comportamento* (regras, cenários); o **OpenAPI** diz *a forma* (rotas, tipos, códigos). Os exemplos da spec e do contrato MUST ser coerentes (tarefa do BA).
+- Alternativa descartada: gerar o OpenAPI a partir do código (ex.: Scramble) — inverte a ordem (código define contrato) e amarra o contrato à implementação.
+
 ## Risks / Trade-offs
 
 - [Porta 8080 ocupada na máquina do avaliador] → documentar no README como trocar (`FRONT_PORT=… docker compose up`), usando `"${FRONT_PORT:-8080}:80"`.

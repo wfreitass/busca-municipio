@@ -21,7 +21,8 @@ Tarefa 1.1:
    algum município com densidade null (e onde ele cai no ranking). Ajuste exemplos da spec.
 3. Confirme regras de navegação: trocar de UF volta à página 1; trocar de página não recarrega os totais;
    página na URL.
-4. Rode `npx @fission-ai/openspec validate ranking-estado --strict`.
+4. Garanta que os exemplos da spec e do docs/api/openapi.yaml são coerentes; rode `npx @redocly/cli lint docs/api/openapi.yaml`.
+5. Rode `npx @fission-ai/openspec validate ranking-estado --strict`.
 
 Não escreva código. Commit: `docs(spec): confirma exemplos do ranking por uf`.
 ```
@@ -31,7 +32,7 @@ Não escreva código. Commit: `docs(spec): confirma exemplos do ranking por uf`.
 ```text
 Você é o dev back-end da change OpenSpec `ranking-estado`.
 
-Leia: specs/api-estados/spec.md (contrato EXATO), design.md (D1–D3), tasks.md, docs/ARQUITETURA.md §2.
+Leia: specs/api-estados/spec.md (comportamento) e docs/api/openapi.yaml (contrato EXATO — as respostas serão validadas contra ele), design.md (D1–D3), tasks.md, docs/ARQUITETURA.md §2.
 
 Execute com `/opsx:apply ranking-estado` SOMENTE as tarefas [BACK]: 2.1, 2.2 e 2.3.
 

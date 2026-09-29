@@ -1,0 +1,317 @@
+openapi: 3.0.3
+info:
+  title: Censo 2022 — API de consulta
+  version: 1.0.0
+  license: { name: MIT, url: 'https://opensource.org/licenses/MIT' }
+  description: |
+    API somente leitura sobre o Censo Demográfico 2022 (IBGE).
+    Fonte da verdade do contrato HTTP. As regras de negócio estão nas specs OpenSpec
+    (`api-municipios`, `api-estados`, `convencoes-api`, `dados-censo`).
+
+    Convenções:
+    - Rotas de negócio sob `/api/v1`. Códigos IBGE são sempre strings.
+    - Respostas 200 de negócio são cacheáveis (`Cache-Control: public, max-age=86400` + `ETag`).
+    - Erros em Problem Details (RFC 9457), `application/problem+json`.
+servers:
+  - url: http://localhost:8080
+    description: docker compose (nginx → backend)
+
+security: []  # API pública e somente leitura: sem autenticação, de propósito.
+
+tags:
+  - name: operacional
+    description: Saúde e operação (fora do versionamento)
+  - name: municipios
+    description: Busca e resumo de municípios (Tela 1)
+  - name: ufs
+    description: UFs, totais e ranking por densidade (Tela 2)
+
+paths:
+  /api/health:
+    get:
+      tags: [operacional]
+      operationId: health
+      summary: Saúde da aplicação
+      responses:
+        '200':
+          description: Pronta para atender
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, enum: [ok] }
+
+  /api/v1/municipios:
+    get:
+      tags: [municipios]
+      operationId: buscarMunicipios
+      summary: Busca municípios por nome (autocomplete)
+      description: |
+        Insensível a caixa, acento, apóstrofo e hífen; palavras em qualquer ordem.
+        Ordenação: nome igual ao termo, depois prefixo, depois contém; empate por população desc.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, minLength: 2, maxLength: 60 }
+          example: sao paulo
+        - name: limite
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 20, default: 10 }
+      responses:
+        '200':
+          description: Sugestões (lista vazia quando nada é encontrado)
+          headers:
+            ETag: { $ref: '#/components/headers/ETag' }
+            Cache-Control: { $ref: '#/components/headers/CacheControl' }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    maxItems: 20
+                    items: { $ref: '#/components/schemas/MunicipioSugestao' }
+        '304': { $ref: '#/components/responses/NaoModificado' }
+        '422': { $ref: '#/components/responses/Validacao' }
+
+  /api/v1/municipios/{codigo}:
+    get:
+      tags: [municipios]
+      operationId: obterMunicipio
+      summary: Resumo do Censo 2022 de um município
+      parameters:
+        - name: codigo
+          in: path
+          required: true
+          schema: { type: string, pattern: '^[0-9]{7}$' }
+          example: '3550308'
+      responses:
+        '200':
+          description: Resumo do município
+          headers:
+            ETag: { $ref: '#/components/headers/ETag' }
+            Cache-Control: { $ref: '#/components/headers/CacheControl' }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/MunicipioResumo' }
+        '304': { $ref: '#/components/responses/NaoModificado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /api/v1/ufs:
+    get:
+      tags: [ufs]
+      operationId: listarUfs
+      summary: Lista das 27 UFs ordenadas por nome
+      responses:
+        '200':
+          description: UFs
+          headers:
+            ETag: { $ref: '#/components/headers/ETag' }
+            Cache-Control: { $ref: '#/components/headers/CacheControl' }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    minItems: 27
+                    maxItems: 27
+                    items: { $ref: '#/components/schemas/UfRef' }
+        '304': { $ref: '#/components/responses/NaoModificado' }
+
+  /api/v1/ufs/{sigla}:
+    get:
+      tags: [ufs]
+      operationId: obterUf
+      summary: Totais do Censo 2022 de uma UF
+      parameters:
+        - $ref: '#/components/parameters/Sigla'
+      responses:
+        '200':
+          description: Resumo da UF
+          headers:
+            ETag: { $ref: '#/components/headers/ETag' }
+            Cache-Control: { $ref: '#/components/headers/CacheControl' }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/UfResumo' }
+        '304': { $ref: '#/components/responses/NaoModificado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /api/v1/ufs/{sigla}/municipios:
+    get:
+      tags: [ufs]
+      operationId: rankingMunicipiosUf
+      summary: Municípios da UF ranqueados por densidade (desc), paginados
+      parameters:
+        - $ref: '#/components/parameters/Sigla'
+        - name: pagina
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: por_pagina
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+      responses:
+        '200':
+          description: Página do ranking (`data` vazio quando a página passa do fim)
+          headers:
+            ETag: { $ref: '#/components/headers/ETag' }
+            Cache-Control: { $ref: '#/components/headers/CacheControl' }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ItemRanking' }
+                  meta: { $ref: '#/components/schemas/MetaPaginacao' }
+        '304': { $ref: '#/components/responses/NaoModificado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '422': { $ref: '#/components/responses/Validacao' }
+
+components:
+  parameters:
+    Sigla:
+      name: sigla
+      in: path
+      required: true
+      description: Sigla da UF (maiúsculas ou minúsculas)
+      schema: { type: string, pattern: '^[A-Za-z]{2}$' }
+      example: SP
+
+  headers:
+    ETag:
+      description: Identificador da representação; reenviar em `If-None-Match`.
+      schema: { type: string }
+    CacheControl:
+      schema: { type: string, example: 'public, max-age=86400' }
+
+  responses:
+    NaoModificado:
+      description: Representação não mudou desde o `ETag` informado (sem corpo)
+    NaoEncontrado:
+      description: Recurso inexistente
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }
+          example: { type: 'about:blank', title: Não encontrado, status: 404, detail: Município não encontrado. }
+    Validacao:
+      description: Parâmetros inválidos
+      content:
+        application/problem+json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Problema'
+              - type: object
+                required: [errors]
+                properties:
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items: { type: string }
+
+  schemas:
+    Problema:
+      type: object
+      description: Problem Details (RFC 9457)
+      required: [type, title, status]
+      properties:
+        type: { type: string, default: 'about:blank' }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+
+    UfRef:
+      type: object
+      required: [codigo, sigla, nome]
+      properties:
+        codigo: { type: string, pattern: '^[0-9]{2}$', example: '35' }
+        sigla: { type: string, pattern: '^[A-Z]{2}$', example: SP }
+        nome: { type: string, example: São Paulo }
+
+    MunicipioSugestao:
+      type: object
+      required: [codigo, nome, uf, rotulo]
+      properties:
+        codigo: { type: string, pattern: '^[0-9]{7}$', example: '3550308' }
+        nome: { type: string, example: São Paulo }
+        uf: { $ref: '#/components/schemas/UfRef' }
+        rotulo: { type: string, description: '"Nome - SIGLA"', example: São Paulo - SP }
+
+    MunicipioResumo:
+      type: object
+      required: [codigo, nome, uf, populacao, area_km2, densidade_hab_km2, setores, sexo]
+      properties:
+        codigo: { type: string, pattern: '^[0-9]{7}$' }
+        nome: { type: string }
+        uf: { $ref: '#/components/schemas/UfRef' }
+        populacao: { type: integer, minimum: 0, example: 11451999 }
+        area_km2: { type: number, description: 2 casas decimais }
+        densidade_hab_km2: { type: number, nullable: true, description: 'null quando a área é 0' }
+        setores:
+          type: object
+          required: [total, urbanos, rurais, sem_classificacao]
+          description: urbanos + rurais + sem_classificacao = total
+          properties:
+            total: { type: integer, minimum: 0 }
+            urbanos: { type: integer, minimum: 0 }
+            rurais: { type: integer, minimum: 0 }
+            sem_classificacao: { type: integer, minimum: 0 }
+        sexo:
+          type: object
+          required: [homens, mulheres, nao_informado, percentual_homens, percentual_mulheres]
+          properties:
+            homens: { type: integer, minimum: 0 }
+            mulheres: { type: integer, minimum: 0 }
+            nao_informado: { type: integer, minimum: 0, description: 'max(populacao - homens - mulheres, 0)' }
+            percentual_homens: { type: number, nullable: true, description: 'sobre homens + mulheres; null se a soma for 0' }
+            percentual_mulheres: { type: number, nullable: true }
+
+    UfResumo:
+      allOf:
+        - $ref: '#/components/schemas/UfRef'
+        - type: object
+          required: [populacao, area_km2, densidade_hab_km2, total_municipios]
+          properties:
+            populacao: { type: integer, minimum: 0 }
+            area_km2: { type: number }
+            densidade_hab_km2: { type: number, nullable: true, description: 'soma(pop) / soma(área) da UF' }
+            total_municipios: { type: integer, minimum: 1 }
+
+    ItemRanking:
+      type: object
+      required: [posicao, codigo, nome, populacao, area_km2, densidade_hab_km2]
+      properties:
+        posicao: { type: integer, minimum: 1, description: posição global na UF (não o índice na página) }
+        codigo: { type: string, pattern: '^[0-9]{7}$' }
+        nome: { type: string }
+        populacao: { type: integer, minimum: 0 }
+        area_km2: { type: number }
+        densidade_hab_km2: { type: number, nullable: true }
+
+    MetaPaginacao:
+      type: object
+      required: [pagina, por_pagina, total, total_paginas]
+      properties:
+        pagina: { type: integer, minimum: 1 }
+        por_pagina: { type: integer, minimum: 1, maximum: 100 }
+        total: { type: integer, minimum: 0 }
+        total_paginas: { type: integer, minimum: 0 }
