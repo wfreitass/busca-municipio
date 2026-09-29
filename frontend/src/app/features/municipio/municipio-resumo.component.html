@@ -1,0 +1,54 @@
+@let r = resumo();
+
+<header class="cabecalho">
+  <h2>{{ r.nome }} <span class="sigla">{{ r.uf.sigla }}</span></h2>
+  <p>{{ r.uf.nome }} · Censo Demográfico 2022</p>
+</header>
+
+<div class="indicadores">
+  <app-indicador-card rotulo="População" [valor]="r.populacao | numeroOuTraco" unidade="habitantes" />
+  <app-indicador-card rotulo="Setores censitários" [valor]="r.setores.total | numeroOuTraco" unidade="setores" />
+  <app-indicador-card rotulo="Área total" [valor]="r.area_km2 | numeroOuTraco: '1.2-2'" unidade="km²" />
+  <app-indicador-card rotulo="Densidade demográfica" [valor]="r.densidade_hab_km2 | numeroOuTraco: '1.2-2'" unidade="hab/km²" />
+</div>
+
+<div class="distribuicoes">
+  <section aria-labelledby="titulo-setores">
+    <h3 id="titulo-setores">Situação dos setores</h3>
+    <div class="barra" role="img" aria-label="Proporção de setores por situação">
+      @for (f of setores(); track f.rotulo) {
+        <span [class]="f.classe" [style.width.%]="f.percentual"></span>
+      }
+    </div>
+    <ul class="legenda">
+      @for (f of setores(); track f.rotulo) {
+        <li>
+          <span class="marcador" [class]="f.classe"></span>{{ f.rotulo }}
+          <strong>{{ f.valor | numeroOuTraco }}</strong>
+          <span class="pct">{{ f.percentual | numeroOuTraco: '1.1-1' }}%</span>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section aria-labelledby="titulo-sexo">
+    <h3 id="titulo-sexo">População por sexo</h3>
+    <div class="barra" role="img" aria-label="Proporção da população por sexo">
+      @for (f of sexo(); track f.rotulo) {
+        <span [class]="f.classe" [style.width.%]="f.percentual"></span>
+      }
+    </div>
+    <ul class="legenda">
+      @for (f of sexo(); track f.rotulo) {
+        <li>
+          <span class="marcador" [class]="f.classe"></span>{{ f.rotulo }}
+          <strong>{{ f.valor | numeroOuTraco }}</strong>
+          <span class="pct">{{ f.percentual | numeroOuTraco: '1.1-1' }}%</span>
+        </li>
+      }
+    </ul>
+    @if (r.sexo.nao_informado > 0) {
+      <p class="nota">"Não informado": parte da população sem distribuição por sexo divulgada pelo IBGE (sigilo estatístico).</p>
+    }
+  </section>
+</div>
