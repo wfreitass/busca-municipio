@@ -19,7 +19,7 @@
 - [x] 3.3 [FRONT] `UfResumoComponent` com 4 cards — commit `feat(frontend): totais do estado`
 - [x] 3.4 [FRONT] `RankingMunicipiosComponent` com `mat-table` + `mat-paginator` (25/50/100) + loading sobreposto + link para `/municipios/{codigo}` (D5); verificar SP página 2 → posições 51–100 — commit `feat(frontend): ranking paginado de municipios`
 - [x] 3.5 [FRONT] Estados "Estado não encontrado", erro com "Tentar novamente" e página vazia — commit `feat(frontend): estados de erro da tela de estados`
-- [ ] 3.6 [QA] Testes Vitest simples: serviço envia `pagina`/`por_pagina` corretos; `RankingMunicipiosComponent` renderiza posições recebidas (ex.: 51) e `length` do paginador = `meta.total`; verificar `npm test` — commit `test(frontend): tela de estados`
+- [x] 3.6 [QA] Testes Vitest simples: serviço envia `pagina`/`por_pagina` corretos; `RankingMunicipiosComponent` renderiza posições recebidas (ex.: 51) e `length` do paginador = `meta.total`; verificar `npm test` — commit `test(frontend): tela de estados`
 
 ## 4. Verificação integrada
 

@@ -60,4 +60,13 @@ describe('CensoApiService', () => {
 
     http.expectOne('/api/v1/municipios/3550308').flush({ data: { codigo: '3550308' } });
   });
+
+  it('ranking envia pagina e por_pagina e preserva o meta', () => {
+    service.ranking('SP', 2, 50).subscribe((pagina) => expect(pagina.meta.total).toBe(645));
+
+    const request = http.expectOne((r) => r.url === '/api/v1/ufs/SP/municipios');
+    expect(request.request.params.get('pagina')).toBe('2');
+    expect(request.request.params.get('por_pagina')).toBe('50');
+    request.flush({ data: [], meta: { pagina: 2, por_pagina: 50, total: 645, total_paginas: 13 } });
+  });
 });
