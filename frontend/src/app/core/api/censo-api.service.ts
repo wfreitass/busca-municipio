@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
-import { MunicipioResumo, MunicipioSugestao } from './censo.models';
+import { ItemRanking, MunicipioResumo, MunicipioSugestao, Pagina, UfRef, UfResumo } from './censo.models';
 
 @Injectable({ providedIn: 'root' })
 export class CensoApiService {
@@ -25,5 +25,21 @@ export class CensoApiService {
     return this.http
       .get<{ data: MunicipioResumo }>(`${this.apiBaseUrl}/municipios/${encodeURIComponent(codigo)}`)
       .pipe(map((resposta) => resposta.data));
+  }
+
+  ufs(): Observable<UfRef[]> {
+    return this.http.get<{ data: UfRef[] }>(`${this.apiBaseUrl}/ufs`).pipe(map((resposta) => resposta.data));
+  }
+
+  uf(sigla: string): Observable<UfResumo> {
+    return this.http
+      .get<{ data: UfResumo }>(`${this.apiBaseUrl}/ufs/${encodeURIComponent(sigla)}`)
+      .pipe(map((resposta) => resposta.data));
+  }
+
+  ranking(sigla: string, pagina: number, porPagina: number): Observable<Pagina<ItemRanking>> {
+    const params = new HttpParams().set('pagina', pagina).set('por_pagina', porPagina);
+
+    return this.http.get<Pagina<ItemRanking>>(`${this.apiBaseUrl}/ufs/${encodeURIComponent(sigla)}/municipios`, { params });
   }
 }

@@ -14,7 +14,7 @@
 
 ## 3. Tela
 
-- [ ] 3.1 [FRONT] `CensoApiService.ufs()`, `.uf(sigla)`, `.ranking(sigla, pagina, porPagina)` — commit `feat(frontend): servico de ufs`
+- [x] 3.1 [FRONT] `CensoApiService.ufs()`, `.uf(sigla)`, `.ranking(sigla, pagina, porPagina)` — commit `feat(frontend): servico de ufs`
 - [ ] 3.2 [FRONT] `EstadoStore` (D4) + `BuscaEstadoPage` com seletor de UF e rota `/estados/:sigla?` + `?pagina` (D4) — commit `feat(frontend): tela de busca por estado`
 - [ ] 3.3 [FRONT] `UfResumoComponent` com 4 cards — commit `feat(frontend): totais do estado`
 - [ ] 3.4 [FRONT] `RankingMunicipiosComponent` com `mat-table` + `mat-paginator` (25/50/100) + loading sobreposto + link para `/municipios/{codigo}` (D5); verificar SP página 2 → posições 51–100 — commit `feat(frontend): ranking paginado de municipios`
