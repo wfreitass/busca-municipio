@@ -8,6 +8,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -33,9 +34,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 default => 500,
             };
 
-            $detail = $status >= 500
-                ? 'Ocorreu um erro interno ao processar a solicitação.'
-                : ($exception->getMessage() ?: 'A solicitação não pôde ser processada.');
+            $detail = match (true) {
+                $status >= 500 => 'Ocorreu um erro interno ao processar a solicitação.',
+                // Mensagem padrão do roteador vem em inglês e expõe o caminho: troca por uma neutra.
+                $exception instanceof NotFoundHttpException && str_starts_with($exception->getMessage(), 'The route') => 'Recurso não encontrado.',
+                default => $exception->getMessage() ?: 'A solicitação não pôde ser processada.',
+            };
 
             $payload = [
                 'type' => 'about:blank',
