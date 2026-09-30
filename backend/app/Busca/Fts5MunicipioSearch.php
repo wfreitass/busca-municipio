@@ -2,9 +2,9 @@
 
 namespace App\Busca;
 
-use App\Censo\NormalizadorTexto;
 use App\Dados\MunicipioSugestao;
 use App\Dados\UfRef;
+use App\Support\NormalizadorTexto;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 

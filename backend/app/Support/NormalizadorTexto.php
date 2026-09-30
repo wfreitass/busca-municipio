@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Censo;
+namespace App\Support;
 
 use Illuminate\Support\Str;
 

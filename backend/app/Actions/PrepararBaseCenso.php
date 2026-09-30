@@ -1,14 +1,20 @@
 <?php
 
-namespace App\Censo;
+namespace App\Actions;
 
+use App\Support\NormalizadorTexto;
+use App\Support\SiglasUf;
 use PDO;
 use PDOStatement;
 use RuntimeException;
 
-final class PreparadorBaseCenso
+/**
+ * ETL de build: agrega o censo cru no read model (municipio_resumo, uf_resumo, municipio_busca).
+ * SQL explícito de propósito: é um processo batch sobre 468 mil setores, não acesso a dados da aplicação.
+ */
+final class PrepararBaseCenso
 {
-    public function preparar(PDO $db, bool $validarTotais = true): void
+    public function handle(PDO $db, bool $validarTotais = true): void
     {
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $db->beginTransaction();

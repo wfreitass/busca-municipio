@@ -6,7 +6,7 @@
 
 ## 2. Reorganização
 
-- [ ] 2.1 [BACK] Mover `SiglasUf` e `NormalizadorTexto` para `app/Support/` e o ETL para `app/Actions/PrepararBaseCenso.php` (D5), removendo `app/Censo/`; verificar testes verdes — commit `refactor(backend): separa etl em action e utilitarios em support`
+- [x] 2.1 [BACK] Mover `SiglasUf` e `NormalizadorTexto` para `app/Support/` e o ETL para `app/Actions/PrepararBaseCenso.php` (D5), removendo `app/Censo/`; verificar testes verdes — commit `refactor(backend): separa etl em action e utilitarios em support`
 
 ## 3. Models
 

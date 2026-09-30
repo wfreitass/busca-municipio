@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use App\Censo\NormalizadorTexto;
-use App\Censo\SiglasUf;
+use App\Support\NormalizadorTexto;
+use App\Support\SiglasUf;
 use PHPUnit\Framework\TestCase;
 
 final class CensoTest extends TestCase

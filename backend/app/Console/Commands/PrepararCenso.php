@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Censo\PreparadorBaseCenso;
+use App\Actions\PrepararBaseCenso;
 use Illuminate\Console\Command;
 use PDO;
 use RuntimeException;
@@ -13,12 +13,12 @@ final class PrepararCenso extends Command
 
     protected $description = 'Gera o read model do Censo em uma cópia do SQLite';
 
-    public function handle(PreparadorBaseCenso $preparador): int
+    public function handle(PrepararBaseCenso $preparar): int
     {
         $database = $this->option('database') ?: database_path('censo.sqlite');
         $db = new PDO('sqlite:'.$database);
 
-        $preparador->preparar($db, ! $this->option('skip-validation'));
+        $preparar->handle($db, ! $this->option('skip-validation'));
         $totaisStatement = $db->query('SELECT COUNT(*) ufs, SUM(populacao) populacao, SUM(area_km2) area FROM uf_resumo');
         $municipiosStatement = $db->query('SELECT COUNT(*) FROM municipio_resumo WHERE consultavel = 1');
         if ($totaisStatement === false || $municipiosStatement === false) {
