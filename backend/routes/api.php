@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 use App\Http\Controllers\Api\V1\MunicipioController;
 use App\Http\Controllers\Api\V1\UfController;
 use Illuminate\Support\Facades\Route;

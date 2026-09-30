@@ -2,7 +2,7 @@
 
 ## 1. Estilo
 
-- [ ] 1.1 [BACK] Remover `declare(strict_types=1)` de todos os arquivos PHP do back-end e a regra `declare_strict_types` do `pint.json` (design D6); verificar `composer lint`, `composer analyse` e `php artisan test` verdes — commit `refactor(backend): remove declare strict_types em favor do larastan`
+- [x] 1.1 [BACK] Remover `declare(strict_types=1)` de todos os arquivos PHP do back-end e a regra `declare_strict_types` do `pint.json` (design D6); verificar `composer lint`, `composer analyse` e `php artisan test` verdes — commit `refactor(backend): remove declare strict_types em favor do larastan`
 
 ## 2. Reorganização
 
