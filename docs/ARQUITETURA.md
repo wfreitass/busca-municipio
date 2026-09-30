@@ -20,7 +20,7 @@
    docs/api/openapi.yaml ──────────────────┤   ├─ municipio_resumo / uf_resumo (read model)│
    (contrato primeiro)   valida respostas  │   └─ municipio_busca (FTS5 trigram)          │
                                            └───────────────────────▲──────────────────────┘
-                                                                   │ docker build: censo:preparar
+                                                                   │ docker build: migrate --seed
                                    ./censo.sqlite (raiz, versionado, NUNCA alterado)
 ```
 
@@ -29,7 +29,7 @@
 | Força do problema | Como a arquitetura responde |
 | --- | --- |
 | Dado **somente leitura** e estático (468 mil setores) | Agregar **uma vez**, no build, e servir consultas triviais. Sem escrita não há por que pagar uma arquitetura de domínio rica. |
-| Regras de agregação cheias de armadilhas (nulos, LEFT JOIN, densidade ponderada, registro `'.'` das lagoas) | Regras concentradas num único passo (`censo:preparar`), testado com fixture e **validado contra os totais do IBGE — o build falha se não bater**. |
+| Regras de agregação cheias de armadilhas (nulos, LEFT JOIN, densidade ponderada, registro `'.'` das lagoas) | Regras concentradas num único passo (`ReadModelCensoSeeder` → `PrepararBaseCenso`), testado com fixture e **validado contra os totais do IBGE — o build falha se não bater**. |
 | SP tem 645 municípios, RR tem 15 | Posição no ranking pré-calculada; API pagina por índice `(cd_uf, posicao)`. Mesmo custo por requisição em qualquer UF. |
 | Busca por nome com acento, apóstrofo, homônimos | Nome normalizado + FTS5 trigram (palavras em qualquer ordem), atrás de uma **porta** trocável. |
 | "Sobe com um comando, sem passo manual" | Preparação no `Dockerfile`: o container já nasce pronto. O CI roda o mesmo comando numa máquina limpa a cada push. |
@@ -43,7 +43,8 @@
 | **Clean Architecture / Hexagonal / DDD completo** | Sem escrita e sem regra transacional, seriam ~25 arquivos (entidades, portas de repositório, casos de uso, adaptadores) para 5 rotas de leitura. Seguimos o idioma do Laravel de forma consistente e usamos uma interface **só na busca**, o único ponto com troca de motor prevista (FTS5 hoje, Meilisearch amanhã). |
 | **Scout + Meilisearch** | Ganha tolerância a erro de digitação, mas exige um container a mais e indexação na subida, arriscando o requisito eliminatório. Fica como implementação futura de `BuscaMunicipios`. |
 | **Agregar em tempo de requisição** | `GROUP BY` sobre dezenas de milhares de setores por request e regras duplicadas em várias queries. |
-| **Preparar o banco no _entrypoint_ ou via migration** | Subida mais lenta, volume gravável, estado inconsistente entre reinícios. |
+| **Preparar o banco no _entrypoint_ (na subida do container)** | Subida mais lenta, volume gravável, estado inconsistente entre reinícios. `migrate --seed` roda no **build** da imagem: o container já nasce pronto. |
+| **Agregação dentro da migration** | Misturaria carga de dados com schema e impediria refazer a carga sem mexer no schema. Migration só cria tabelas/índices; o seeder carrega. |
 | **Alterar o `censo.sqlite` da raiz** | Suja o `git status` e altera o dado entregue. |
 | **Query Builder + DTOs escritos à mão** | Foi a primeira versão. Na revisão, virou um meio-termo sem critério (nem hexagonal, nem Laravel): DTOs duplicavam o que o Eloquent já dá (hidratação, casts, relações, route binding) e as consultas ficaram em três pastas. Substituído por Models (change `backend-laravel-idiomatico`). |
 | **Models sobre as tabelas cruas** (`setor`, `demografia`) | Convidaria a agregar em tempo de requisição. Os Models apontam para o read model; as tabelas cruas só existem para o ETL. |
@@ -66,18 +67,23 @@ backend/app/
 │   ├── BuscaMunicipios.php                # contrato: termo → Collection<Municipio>
 │   └── Fts5BuscaMunicipios.php            # implementação atual (binding no AppServiceProvider)
 ├── Actions/
-│   └── PrepararBaseCenso.php              # ETL de build: agrega, normaliza, indexa, valida totais
+│   └── PrepararBaseCenso.php              # carga do read model: agrega, normaliza, indexa, valida totais
 ├── Support/
 │   ├── SiglasUf.php                       # cd_uf ↔ sigla (27 UFs)
 │   └── NormalizadorTexto.php              # "Olho-d'Água" → "olho d agua" (build e request)
-└── Console/Commands/PrepararCenso.php     # censo:preparar → Actions\PrepararBaseCenso
+
+backend/database/
+├── migrations/…_cria_read_model_do_censo.php   # schema: municipio_resumo, uf_resumo, índices, FTS5 municipio_busca
+└── seeders/ReadModelCensoSeeder.php          # carga: chama Actions\PrepararBaseCenso (via DatabaseSeeder)
 ```
 
 Fluxo de uma requisição: **Route** (binding do Model; `->missing()` gera o 404 com a mensagem da spec) → **FormRequest** (valida, 422) → **Controller** (Model/scopes ou `BuscaMunicipios`) → **API Resource** (forma do JSON, arredondamento na borda).
 
 Por que cada peça está onde está:
 - **Models só leem o read model.** Toda regra de agregação (nulos, `LEFT JOIN`, densidade ponderada, registro `'.'`) já foi aplicada no build; em runtime os Models só filtram, ordenam e paginam.
-- **SQL explícito só no ETL** (`Actions/PrepararBaseCenso`): é um processo batch sobre 468 mil setores, com window function e tabela FTS5, rodado uma vez no build — não é acesso a dados da aplicação.
+- **Schema em migration, carga em seeder** (`php artisan migrate --seed`, no build). As tabelas cruas do censo não têm migration: são o dado de entrada, não schema da aplicação.
+- **SQL explícito só na agregação em lote** (`Actions/PrepararBaseCenso`, chamada pelo seeder): `INSERT … SELECT` e window function sobre 468 mil setores — hidratar Models linha a linha seria ordens de grandeza mais lento. O resto da carga (nomes normalizados, validação dos totais) usa os Models
+- **Dado original protegido:** `DB::prohibitDestructiveCommands()` bloqueia `migrate:fresh`, `migrate:reset/refresh/rollback` e `db:wipe`, que apagariam também as tabelas cruas do arquivo — o read model pode ser refeito, o dado original não.
 - **Ranking com `forPage()`, não `paginate()`**: mantém o `meta` do contrato e evita um `COUNT(*)`, porque o total já está em `uf_resumo`.
 - **Tipagem**: sem `declare(strict_types=1)` (estilo do esqueleto do Laravel; o PHP não tem configuração global para isso, a declaração é por arquivo). A garantia de tipos é o Larastan nível 8 no CI, com `@property` documentando as colunas dos Models.
 
@@ -127,7 +133,7 @@ frontend/src/app/
 
 ## 4. Infra e qualidade
 
-- `backend`: `php:8.3-apache`, `censo:preparar` no build, healthcheck em `/api/health`.
+- `backend`: `php:8.3-apache`, `php artisan migrate --seed --force` no build, healthcheck em `/api/health`.
 - `frontend`: `node:22-alpine` → `nginx:alpine`, fallback SPA + proxy `/api/` (mesma origem, sem CORS).
 - `depends_on: service_healthy`; porta `${FRONT_PORT:-8080}`.
 - **CI (GitHub Actions)**: `openspec validate --strict` + lint do OpenAPI · Pint + Larastan 8 + testes · lint + testes + build do front + tipos sem diff · `docker compose up --build --wait` + smoke test.
@@ -147,7 +153,7 @@ frontend/src/app/
 1. **Horizontal**: API sem estado e dado imutável ⇒ N réplicas atrás de um balanceador, sem coordenação.
 2. **Borda**: `ETag` + `Cache-Control: public` permitem que navegador, nginx ou CDN respondam sem tocar no PHP.
 3. **Busca**: volume ou exigência maior (tolerância a erro de digitação) ⇒ novo adaptador `MeilisearchBuscaMunicipios` + uma linha de binding. Controller, contrato e front intactos.
-4. **Dados**: nova edição do censo ou troca de SQLite por Postgres ⇒ muda só `censo:preparar` e as Queries. O read model isola o resto.
+4. **Dados**: nova edição do censo ou troca de SQLite por Postgres ⇒ muda só a migration/seeder do read model (e o driver da conexão). Os Models, a API e o front não mudam.
 5. **API**: mudança incompatível ⇒ `/api/v2` convivendo com `/api/v1`, contrato versionado no OpenAPI.
 6. **Front**: nova tela ⇒ nova pasta em `features/` com sua store; `core` e `shared` reaproveitados.
 

@@ -75,7 +75,7 @@ Precisa de PHP 8.3 com `pdo_sqlite`, Composer e Node 22.
 ```bash
 # API em :8000
 cd backend && composer install && cp .env.example .env && php artisan key:generate
-cp ../censo.sqlite database/censo.sqlite && php artisan censo:preparar
+cp ../censo.sqlite database/censo.sqlite && php artisan migrate --seed
 DB_DATABASE="$PWD/database/censo.sqlite" php -S localhost:8000 -t public
 
 # SPA em :4200 (proxy de /api para :8000)
@@ -87,7 +87,7 @@ cd frontend && npm ci && npm start
 ```
 ├── censo.sqlite            # dado original, nunca alterado
 ├── docker-compose.yml
-├── backend/                # Laravel: Models/ (read model), Http/, Busca/ (interface + FTS5), Actions/ (ETL), Support/
+├── backend/                # Laravel: Models/ (read model), Http/, Busca/ (interface + FTS5), Actions/ (carga), Support/; database/migrations (schema do read model) e database/seeders (carga)
 ├── frontend/               # Angular: core/ (API, interceptor), shared/, features/{municipio,estado}/
 ├── docs/
 │   ├── ARQUITETURA.md      # decisões (estilo ADR), alternativas descartadas, plano de escala
@@ -100,7 +100,7 @@ cd frontend && npm ci && npm start
 
 Detalhe completo em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md). O essencial:
 
-1. **Read model gerado no build.** O comando `censo:preparar` agrega os 468 mil setores em `municipio_resumo` e `uf_resumo`, calcula a posição no ranking e cria o índice de busca, **numa cópia** do sqlite dentro da imagem. A API só faz leituras triviais e indexadas. *Por quê:* o dado é imutável, então agregar uma vez é mais rápido, simples e testável do que agregar a cada requisição; o `censo.sqlite` da raiz continua intacto.
+1. **Read model gerado no build com `php artisan migrate --seed`.** A migration cria o schema (`municipio_resumo`, `uf_resumo`, índices e a tabela FTS5 de busca) e o `ReadModelCensoSeeder` agrega os 468 mil setores, calcula a posição no ranking e indexa a busca, **numa cópia** do sqlite dentro da imagem. A API só faz leituras triviais e indexadas pelos Models. *Por quê:* o dado é imutável, então agregar uma vez é mais rápido, simples e testável do que agregar a cada requisição; o `censo.sqlite` da raiz continua intacto. Como `migrate:fresh` e `db:wipe` apagariam também as tabelas cruas (o dado original), esses comandos ficam bloqueados com `DB::prohibitDestructiveCommands()`.
 2. **O build falha se os totais não baterem com o IBGE** (27 UFs, 5.570 municípios, 203.080.756 hab., 8.510.417 km²). *Por quê:* erro de agregação vira falha visível, não número errado na tela.
 3. **Explorar o dado antes de codar** ([`exploracao.md`](openspec/changes/archive/2026-09-28-preparacao-dados-censo/exploracao.md)). Achados que viraram regra:
    - o 5.571º "município" é o registro `'.'` das lagoas dos Patos e Mirim (RS): fica fora da busca e do ranking, mas sua área (13.085,86 km²) continua somada ao RS, senão a área do Brasil não fecha;
@@ -112,7 +112,7 @@ Detalhe completo em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md). O essencial:
 6. **Paginação no servidor com posição pré-calculada.** SP (645) e RR (15) custam o mesmo por requisição; a `posicao` é global, não o índice na página.
 7. **Contrato primeiro (OpenAPI):** o front gera os tipos TypeScript dele; o back valida suas respostas contra ele nos testes.
 8. **Convenções de API:** `/api/v1`, Problem Details e cache HTTP com `ETag` (dado imutável → cache de graça, pronto para CDN).
-9. **Laravel idiomático, sem DDD/Hexagonal.** Models Eloquent sobre o read model, route model binding, FormRequests e API Resources. Uma única interface, na busca (onde a troca de motor é prevista). SQL explícito só no ETL de build. Sem `declare(strict_types=1)`, no estilo do esqueleto do Laravel; tipos garantidos pelo Larastan nível 8.
+9. **Laravel idiomático, sem DDD/Hexagonal.** Models Eloquent sobre o read model, route model binding, FormRequests e API Resources. Uma única interface, na busca (onde a troca de motor é prevista). Schema do read model em migration e carga em seeder; SQL explícito só na agregação em lote. Sem `declare(strict_types=1)`, no estilo do esqueleto do Laravel; tipos garantidos pelo Larastan nível 8.
 10. **Front por funcionalidade, estado na URL.** Uma pasta por tela, uma store com signals por rota, componentes de apresentação puros; `/municipios/:codigo` e `/estados/:sigla?pagina=N` fazem deep link e F5 funcionarem.
 11. **Nginx do front faz proxy de `/api`**: mesma origem, sem CORS, e só a porta 8080 exposta.
 
@@ -126,7 +126,7 @@ Detalhe completo em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md). O essencial:
 
 **Onde voltei atrás:** a infraestrutura e a change de qualidade entraram num único commit grande (`build: infraestrutura base com qualidade e ci`), contra a regra de commits pequenos, e esse commit deixou o CI vermelho porque registrava o comando `censo:preparar` sem versionar a classe. As falhas pareciam instáveis e ganharam retentativas no CI; a causa real era a classe ausente. Corrigi versionando o código da change seguinte, removi as retentativas e daí em diante voltei ao ritmo de um commit por tarefa. O histórico nunca foi compactado (sem squash); a única reescrita foi remover das mensagens uma linha de coautoria automática, mantendo commits, datas e conteúdo.
 
-**Segundo recuo — arquitetura do back-end:** a primeira versão usava Query Builder com DTOs escritos à mão, uma única interface na busca e consultas espalhadas em três pastas (`Censo/`, `Queries/`, `Busca/`). Na revisão ficou claro que era um meio-termo sem critério: nem hexagonal, nem Laravel idiomático. A change `backend-laravel-idiomatico` adotou Models Eloquent e route model binding de forma consistente, sem alterar nenhuma asserção dos testes nem o contrato da API.
+**Segundo recuo — arquitetura do back-end:** a primeira versão usava Query Builder com DTOs escritos à mão, uma única interface na busca e consultas espalhadas em três pastas (`Censo/`, `Queries/`, `Busca/`). Na revisão ficou claro que era um meio-termo sem critério: nem hexagonal, nem Laravel idiomático. A change `backend-laravel-idiomatico` adotou Models Eloquent e route model binding de forma consistente, sem alterar nenhuma asserção dos testes nem o contrato da API. Na sequência, o comando próprio `censo:preparar` (que misturava criação de schema com carga de dados) deu lugar ao par do Laravel: migration para o schema do read model e seeder para a carga, com `php artisan migrate --seed` no build e `DB::prohibitDestructiveCommands()` protegendo o dado original.
 
 ## O que eu faria diferente com mais tempo
 
