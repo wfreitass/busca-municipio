@@ -14,4 +14,4 @@
 ## 3. Documentação e verificação
 
 - [x] 3.1 [BA] Atualizar `README.md`, `docs/ARQUITETURA.md` e `openspec/config.yaml` — commit `docs: read model por migration e seeder`
-- [ ] 3.2 [QA] Clone limpo + `docker compose up --build` + verificação das duas telas no navegador + suítes de teste
+- [x] 3.2 [QA] Clone limpo + `docker compose up --build` + verificação das duas telas no navegador + suítes de teste
