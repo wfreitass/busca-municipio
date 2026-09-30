@@ -87,7 +87,7 @@ cd frontend && npm ci && npm start
 ```
 ├── censo.sqlite            # dado original, nunca alterado
 ├── docker-compose.yml
-├── backend/                # Laravel: Censo/ (preparação), Busca/ (porta + FTS5), Queries/, Dados/ (DTOs), Http/
+├── backend/                # Laravel: Models/ (read model), Http/, Busca/ (interface + FTS5), Actions/ (ETL), Support/
 ├── frontend/               # Angular: core/ (API, interceptor), shared/, features/{municipio,estado}/
 ├── docs/
 │   ├── ARQUITETURA.md      # decisões (estilo ADR), alternativas descartadas, plano de escala
@@ -108,11 +108,11 @@ Detalhe completo em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md). O essencial:
    - 9.327 setores não têm linha em `demografia` → `LEFT JOIN`, e a diferença vira "não informado" na distribuição por sexo;
    - a tabela `uf` não tem sigla → mapa estático das 27 siglas.
 4. **Densidade de agregado = soma da população ÷ soma da área**, nunca média das densidades dos municípios.
-5. **Busca com FTS5 trigram atrás de uma interface (`MunicipioSearch`).** Nome normalizado (sem acento, apóstrofo e hífen), palavras em qualquer ordem ("paulo sao"), termos de 2 letras por `LIKE` (o trigram exige 3), relevância explícita (exato > prefixo > contém, depois população). *Por que não Scout + Meilisearch:* tolera erro de digitação, mas exige outro container e indexação na subida, arriscando o "um comando só". Trocar de motor depois = um novo adaptador e uma linha de binding.
+5. **Busca com FTS5 trigram atrás de uma interface (`BuscaMunicipios`).** Nome normalizado (sem acento, apóstrofo e hífen), palavras em qualquer ordem ("paulo sao"), termos de 2 letras por `LIKE` (o trigram exige 3), relevância explícita (exato > prefixo > contém, depois população). *Por que não Scout + Meilisearch:* tolera erro de digitação, mas exige outro container e indexação na subida, arriscando o "um comando só". Trocar de motor depois = um novo adaptador e uma linha de binding.
 6. **Paginação no servidor com posição pré-calculada.** SP (645) e RR (15) custam o mesmo por requisição; a `posicao` é global, não o índice na página.
 7. **Contrato primeiro (OpenAPI):** o front gera os tipos TypeScript dele; o back valida suas respostas contra ele nos testes.
 8. **Convenções de API:** `/api/v1`, Problem Details e cache HTTP com `ETag` (dado imutável → cache de graça, pronto para CDN).
-9. **Camadas enxutas, sem DDD/Hexagonal completo.** Controller → FormRequest → Query/Search → DTO `readonly` → Resource. Porta/adaptador só onde há variação real (a busca). Query Builder em vez de Eloquent (tabelas `WITHOUT ROWID`, 100% leitura).
+9. **Laravel idiomático, sem DDD/Hexagonal.** Models Eloquent sobre o read model, route model binding, FormRequests e API Resources. Uma única interface, na busca (onde a troca de motor é prevista). SQL explícito só no ETL de build. Sem `declare(strict_types=1)`, no estilo do esqueleto do Laravel; tipos garantidos pelo Larastan nível 8.
 10. **Front por funcionalidade, estado na URL.** Uma pasta por tela, uma store com signals por rota, componentes de apresentação puros; `/municipios/:codigo` e `/estados/:sigla?pagina=N` fazem deep link e F5 funcionarem.
 11. **Nginx do front faz proxy de `/api`**: mesma origem, sem CORS, e só a porta 8080 exposta.
 
@@ -124,12 +124,14 @@ Detalhe completo em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md). O essencial:
 4. **Prompts por papel** em [`docs/prompts/`](docs/prompts/README.md): para cada change, um bloco para BA (valida a spec contra o dado e o enunciado), BACK, FRONT e QA (testes simples + verificação integrada).
 5. `tasks.md` de cada change foi marcado tarefa a tarefa, com um commit Conventional Commits por tarefa.
 
-**Onde voltei atrás:** a infraestrutura e a change de qualidade entraram num único commit grande (`build: infraestrutura base com qualidade e ci`), contra a regra de commits pequenos, e esse commit deixou o CI vermelho porque registrava o comando `censo:preparar` sem versionar a classe. As falhas pareciam instáveis e ganharam retentativas no CI; a causa real era a classe ausente. Corrigi versionando o código da change seguinte, removi as retentativas e daí em diante voltei ao ritmo de um commit por tarefa. Não reescrevi o histórico, para preservá-lo como pedido.
+**Onde voltei atrás:** a infraestrutura e a change de qualidade entraram num único commit grande (`build: infraestrutura base com qualidade e ci`), contra a regra de commits pequenos, e esse commit deixou o CI vermelho porque registrava o comando `censo:preparar` sem versionar a classe. As falhas pareciam instáveis e ganharam retentativas no CI; a causa real era a classe ausente. Corrigi versionando o código da change seguinte, removi as retentativas e daí em diante voltei ao ritmo de um commit por tarefa. O histórico nunca foi compactado (sem squash); a única reescrita foi remover das mensagens uma linha de coautoria automática, mantendo commits, datas e conteúdo.
+
+**Segundo recuo — arquitetura do back-end:** a primeira versão usava Query Builder com DTOs escritos à mão, uma única interface na busca e consultas espalhadas em três pastas (`Censo/`, `Queries/`, `Busca/`). Na revisão ficou claro que era um meio-termo sem critério: nem hexagonal, nem Laravel idiomático. A change `backend-laravel-idiomatico` adotou Models Eloquent e route model binding de forma consistente, sem alterar nenhuma asserção dos testes nem o contrato da API.
 
 ## O que eu faria diferente com mais tempo
 
 - **Commits pequenos desde o início**, sem o commit grande da infraestrutura.
-- **Busca tolerante a erro de digitação** com um adaptador Meilisearch (ou Typesense) para `MunicipioSearch`, indexado num job de build dedicado.
+- **Busca tolerante a erro de digitação** com um adaptador Meilisearch (ou Typesense) para `BuscaMunicipios`, indexado num job de build dedicado.
 - **Testes E2E versionados** (Playwright) rodando no CI, transformando a verificação manual das 26 situações em regressão automática.
 - **Filtro por nome e ordenação por outras colunas** no ranking, e busca da UF por nome.
 - **Gráficos** (pirâmide/composição) e um mapa coroplético por densidade.

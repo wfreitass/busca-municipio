@@ -5,14 +5,14 @@
 
 ## 1. Recomendação
 
-**Monorepo com SPA Angular desacoplada e API REST Laravel em camadas enxutas, contrato primeiro (OpenAPI), lendo um _read model_ imutável pré-computado no build da imagem (CQRS-lite).**
+**Monorepo com SPA Angular desacoplada e API REST em Laravel idiomático (Models Eloquent, route model binding, API Resources), contrato primeiro (OpenAPI), lendo um _read model_ imutável pré-computado no build da imagem (CQRS-lite).**
 
 ```
                          docker compose up --build
 ┌───────────────────────────────┐          ┌──────────────────────────────────────────────┐
 │ frontend (nginx:alpine)       │          │ backend (php:8.3-apache + Laravel 12)        │
-│  SPA Angular (2 telas lazy)   │  /api/*  │  Controller → FormRequest → Query|Search → DTO│
-│  proxy /api → backend:80      ├─────────►│        → Resource  (Problem Details, ETag)   │
+│  SPA Angular (2 telas lazy)   │  /api/*  │  Controller → FormRequest → Model → Resource │
+│  proxy /api → backend:80      ├─────────►│  (route model binding, Problem Details, ETag)│
 │  porta 8080                   │          │                      │ somente leitura       │
 └───────────────────────────────┘          │                      ▼                       │
           ▲ tipos TS gerados               │  database/censo.sqlite (CÓPIA preparada)     │
@@ -40,40 +40,46 @@
 
 | Alternativa | Por que não |
 | --- | --- |
-| **Clean Architecture / Hexagonal / DDD completo** | Sem escrita e sem regra transacional, seriam ~15 arquivos de cerimônia para 5 rotas de leitura. Aplicamos porta/adaptador **só na busca**, o único ponto com variação previsível (FTS5 hoje, Meilisearch amanhã). Senioridade é saber onde a abstração se paga. |
-| **Scout + Meilisearch** | Ganha tolerância a erro de digitação, mas exige um container a mais e indexação na subida, arriscando o requisito eliminatório. Fica como adaptador futuro de `MunicipioSearch`. |
+| **Clean Architecture / Hexagonal / DDD completo** | Sem escrita e sem regra transacional, seriam ~25 arquivos (entidades, portas de repositório, casos de uso, adaptadores) para 5 rotas de leitura. Seguimos o idioma do Laravel de forma consistente e usamos uma interface **só na busca**, o único ponto com troca de motor prevista (FTS5 hoje, Meilisearch amanhã). |
+| **Scout + Meilisearch** | Ganha tolerância a erro de digitação, mas exige um container a mais e indexação na subida, arriscando o requisito eliminatório. Fica como implementação futura de `BuscaMunicipios`. |
 | **Agregar em tempo de requisição** | `GROUP BY` sobre dezenas de milhares de setores por request e regras duplicadas em várias queries. |
 | **Preparar o banco no _entrypoint_ ou via migration** | Subida mais lenta, volume gravável, estado inconsistente entre reinícios. |
 | **Alterar o `censo.sqlite` da raiz** | Suja o `git status` e altera o dado entregue. |
-| **Eloquent Models** | Tabelas `WITHOUT ROWID`, PK texto, 100% leitura: Query Builder + DTOs `readonly` é mais explícito e tipável. |
+| **Query Builder + DTOs escritos à mão** | Foi a primeira versão. Na revisão, virou um meio-termo sem critério (nem hexagonal, nem Laravel): DTOs duplicavam o que o Eloquent já dá (hidratação, casts, relações, route binding) e as consultas ficaram em três pastas. Substituído por Models (change `backend-laravel-idiomatico`). |
+| **Models sobre as tabelas cruas** (`setor`, `demografia`) | Convidaria a agregar em tempo de requisição. Os Models apontam para o read model; as tabelas cruas só existem para o ETL. |
 | **Redis / cache de aplicação** | O dado é imutável: cache HTTP (`ETag` + `Cache-Control`) resolve sem novo serviço. |
 | **Microsserviços / BFF** | Um domínio, um time, 5 rotas. |
 | **Git LFS para o sqlite** | 35 MB cabem no GitHub; LFS exigiria ferramenta extra na máquina do avaliador. |
 
-## 2. Back-end (Laravel 12, PHP 8.3, `strict_types`, Larastan nível 8)
+## 2. Back-end (Laravel 12, PHP 8.3, Larastan nível 8)
 
 ```
 backend/app/
-├── Censo/                                 # conhecimento do dado (ETL)
-│   ├── PreparadorBaseCenso.php            # agrega, normaliza, indexa, valida totais
+├── Models/                                # Eloquent sobre o read model (somente leitura)
+│   ├── Municipio.php                      # municipio_resumo · belongsTo Uf · scopes consultaveis(), rankingDensidade()
+│   └── Uf.php                             # uf_resumo · hasMany Municipio · route key = sigla (sem distinção de caixa)
+├── Http/
+│   ├── Controllers/Api/V1/{Municipio,Uf}Controller.php   # recebem Models por route model binding
+│   ├── Requests/{BuscarMunicipiosRequest,RankingUfRequest}.php
+│   └── Resources/…                        # Model → JSON do contrato (docs/api/openapi.yaml)
+├── Busca/                                 # única interface do back-end
+│   ├── BuscaMunicipios.php                # contrato: termo → Collection<Municipio>
+│   └── Fts5BuscaMunicipios.php            # implementação atual (binding no AppServiceProvider)
+├── Actions/
+│   └── PrepararBaseCenso.php              # ETL de build: agrega, normaliza, indexa, valida totais
+├── Support/
 │   ├── SiglasUf.php                       # cd_uf ↔ sigla (27 UFs)
 │   └── NormalizadorTexto.php              # "Olho-d'Água" → "olho d agua" (build e request)
-├── Busca/                                 # ÚNICA porta/adaptador do projeto
-│   ├── MunicipioSearch.php                # interface
-│   └── Fts5MunicipioSearch.php            # adaptador atual (binding no AppServiceProvider)
-├── Queries/                               # leitura do read model → DTOs
-│   ├── MunicipioQuery.php
-│   └── UfQuery.php
-├── Dados/                                 # DTOs `final readonly class`
-│   └── MunicipioSugestao.php, MunicipioResumo.php, UfResumo.php, ItemRanking.php, Pagina.php
-├── Http/
-│   ├── Controllers/Api/V1/{Municipio,Uf}Controller.php, Api/HealthController.php
-│   ├── Requests/{BuscarMunicipiosRequest,RankingUfRequest}.php
-│   └── Resources/…                        # contrato JSON (espelha docs/api/openapi.yaml)
-└── Console/Commands/PrepararCenso.php     # censo:preparar
+└── Console/Commands/PrepararCenso.php     # censo:preparar → Actions\PrepararBaseCenso
 ```
 
-Fluxo de uma requisição: **Controller** (orquestra) → **FormRequest** (valida, 422) → **Query/Search** (SQL no read model → DTO tipado) → **Resource** (forma do JSON, arredondamento na borda).
+Fluxo de uma requisição: **Route** (binding do Model; `->missing()` gera o 404 com a mensagem da spec) → **FormRequest** (valida, 422) → **Controller** (Model/scopes ou `BuscaMunicipios`) → **API Resource** (forma do JSON, arredondamento na borda).
+
+Por que cada peça está onde está:
+- **Models só leem o read model.** Toda regra de agregação (nulos, `LEFT JOIN`, densidade ponderada, registro `'.'`) já foi aplicada no build; em runtime os Models só filtram, ordenam e paginam.
+- **SQL explícito só no ETL** (`Actions/PrepararBaseCenso`): é um processo batch sobre 468 mil setores, com window function e tabela FTS5, rodado uma vez no build — não é acesso a dados da aplicação.
+- **Ranking com `forPage()`, não `paginate()`**: mantém o `meta` do contrato e evita um `COUNT(*)`, porque o total já está em `uf_resumo`.
+- **Tipagem**: sem `declare(strict_types=1)` (estilo do esqueleto do Laravel; o PHP não tem configuração global para isso, a declaração é por arquivo). A garantia de tipos é o Larastan nível 8 no CI, com `@property` documentando as colunas dos Models.
 
 Convenções transversais (change `infraestrutura-base`, capability `convencoes-api`):
 - **`/api/v1`** para negócio; `/api/health` fora do versionamento.
@@ -140,7 +146,7 @@ frontend/src/app/
 
 1. **Horizontal**: API sem estado e dado imutável ⇒ N réplicas atrás de um balanceador, sem coordenação.
 2. **Borda**: `ETag` + `Cache-Control: public` permitem que navegador, nginx ou CDN respondam sem tocar no PHP.
-3. **Busca**: volume ou exigência maior (tolerância a erro de digitação) ⇒ novo adaptador `MeilisearchMunicipioSearch` + uma linha de binding. Controller, contrato e front intactos.
+3. **Busca**: volume ou exigência maior (tolerância a erro de digitação) ⇒ novo adaptador `MeilisearchBuscaMunicipios` + uma linha de binding. Controller, contrato e front intactos.
 4. **Dados**: nova edição do censo ou troca de SQLite por Postgres ⇒ muda só `censo:preparar` e as Queries. O read model isola o resto.
 5. **API**: mudança incompatível ⇒ `/api/v2` convivendo com `/api/v1`, contrato versionado no OpenAPI.
 6. **Front**: nova tela ⇒ nova pasta em `features/` com sua store; `core` e `shared` reaproveitados.

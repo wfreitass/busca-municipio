@@ -16,12 +16,13 @@ context: |
 
   Arquitetura (ver docs/ARQUITETURA.md):
   - Monorepo, SPA desacoplada + API REST em camadas enxutas
-    (Controller -> FormRequest -> Query|Search -> DTO readonly -> Resource).
+    Laravel idiomático: Route (model binding) -> FormRequest -> Controller -> Model Eloquent -> API Resource.
+  - Models Eloquent sobre o read model; SQL explícito só no ETL (app/Actions/PrepararBaseCenso).
   - Contrato primeiro: docs/api/openapi.yaml (OAS 3.0.3) é a fonte da verdade do HTTP.
   - Convenções: /api/v1, Problem Details (RFC 9457), cache HTTP com ETag.
-  - Busca: FTS5 trigram atrás da porta MunicipioSearch (única porta/adaptador do projeto).
+  - Busca: FTS5 trigram atrás da interface BuscaMunicipios (única interface do back-end).
   - Front: feature-first, store por feature (signals), tipos gerados do OpenAPI.
-  - Qualidade: strict_types, Pint, Larastan 8, angular-eslint, CI no GitHub Actions.
+  - Qualidade: Pint, Larastan 8, angular-eslint, CI no GitHub Actions (sem declare strict_types).
   - Read model pré-computado (CQRS-lite): no build da imagem o comando
     `censo:preparar` gera tabelas agregadas (municipio_resumo, uf_resumo)
     e índices numa CÓPIA do censo.sqlite. A API só lê o read model.

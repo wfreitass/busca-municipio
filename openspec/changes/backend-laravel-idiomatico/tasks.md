@@ -16,5 +16,5 @@
 
 ## 4. Documentação e verificação
 
-- [ ] 4.1 [BA] Atualizar `docs/ARQUITETURA.md`, `README.md` e `openspec/config.yaml` com a nova organização e o registro do recuo (DTOs/Query Builder → Models) — commit `docs: arquitetura laravel idiomatica`
+- [x] 4.1 [BA] Atualizar `docs/ARQUITETURA.md`, `README.md` e `openspec/config.yaml` com a nova organização e o registro do recuo (DTOs/Query Builder → Models) — commit `docs: arquitetura laravel idiomatica`
 - [ ] 4.2 [QA] `docker compose up --build` em clone limpo + verificação das duas telas no navegador + suítes de teste; verificar que nada observável mudou
