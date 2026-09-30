@@ -2,7 +2,11 @@
 
 namespace Tests\Feature;
 
-use PDO;
+use App\Actions\PrepararBaseCenso;
+use App\Models\Municipio;
+use App\Models\Uf;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
@@ -11,22 +15,16 @@ final class TotaisOficiaisCensoTest extends TestCase
 {
     public function test_read_model_real_confere_com_os_totais_do_ibge(): void
     {
-        $arquivo = database_path('censo.sqlite');
-        if (! is_file($arquivo)) {
-            self::markTestSkipped('Base preparada ausente: rode censo:preparar (a imagem Docker já faz isso no build).');
+        config(['database.connections.sqlite.database' => database_path('censo.sqlite')]);
+        DB::purge('sqlite');
+
+        if (! is_file(database_path('censo.sqlite')) || ! Schema::hasTable('uf_resumo')) {
+            self::markTestSkipped('Base preparada ausente: rode `php artisan migrate --seed` (a imagem Docker já faz isso no build).');
         }
 
-        $db = new PDO('sqlite:'.$arquivo);
-        $totaisStatement = $db->query('SELECT COUNT(*) AS ufs, SUM(populacao) AS populacao, SUM(area_km2) AS area FROM uf_resumo');
-        $municipiosStatement = $db->query('SELECT COUNT(*) FROM municipio_resumo WHERE consultavel = 1');
-        self::assertNotFalse($totaisStatement);
-        self::assertNotFalse($municipiosStatement);
-        $totais = $totaisStatement->fetch(PDO::FETCH_ASSOC);
-        self::assertIsArray($totais);
-
-        self::assertSame(27, (int) $totais['ufs']);
-        self::assertSame(203080756, (int) $totais['populacao']);
-        self::assertEqualsWithDelta(8510417, (float) $totais['area'], 1);
-        self::assertSame(5570, (int) $municipiosStatement->fetchColumn());
+        self::assertSame(PrepararBaseCenso::TOTAIS_IBGE['ufs'], Uf::query()->count());
+        self::assertSame(PrepararBaseCenso::TOTAIS_IBGE['municipios'], Municipio::query()->consultaveis()->count());
+        self::assertSame(PrepararBaseCenso::TOTAIS_IBGE['populacao'], (int) Uf::query()->sum('populacao'));
+        self::assertEqualsWithDelta(PrepararBaseCenso::TOTAIS_IBGE['area_km2'], (float) Uf::query()->sum('area_km2'), 1);
     }
 }

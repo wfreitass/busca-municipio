@@ -39,7 +39,7 @@ jobs:
           cp .env.example .env
           php artisan key:generate --force
           cp ../censo.sqlite database/censo.sqlite
-          php artisan censo:preparar
+          php artisan migrate --seed --force
         working-directory: backend
       - run: composer test
         working-directory: backend

@@ -2,48 +2,38 @@
 
 namespace Tests\Concerns;
 
-use Illuminate\Support\Facades\Artisan;
+use Database\Seeders\ReadModelCensoSeeder;
 use Illuminate\Support\Facades\DB;
-use PDO;
 
 /**
- * Cria um SQLite temporário com o schema cru do censo, roda censo:preparar
- * e (opcionalmente) aponta a conexão padrão para ele.
+ * Cria um SQLite temporário só com as tabelas cruas do censo, aponta a conexão para ele
+ * e prepara o read model do jeito da aplicação: migrate + ReadModelCensoSeeder.
  */
 trait UsaBaseCenso
 {
     private ?string $arquivoBaseCenso = null;
 
-    protected function criarBaseCenso(string $inserts, bool $usarComoConexao = true): string
+    protected function criarBaseCenso(string $inserts): void
     {
-        $arquivo = (string) tempnam(sys_get_temp_dir(), 'censo-fixture-');
-        $this->arquivoBaseCenso = $arquivo;
+        $this->arquivoBaseCenso = (string) tempnam(sys_get_temp_dir(), 'censo-fixture-');
+        config(['database.connections.sqlite.database' => $this->arquivoBaseCenso]);
+        DB::purge('sqlite');
 
-        $db = new PDO('sqlite:'.$arquivo);
-        $db->exec(<<<'SQL'
+        DB::unprepared(<<<'SQL'
             CREATE TABLE uf (cd_uf TEXT PRIMARY KEY, nm_uf TEXT NOT NULL) WITHOUT ROWID;
             CREATE TABLE municipio (cd_mun TEXT PRIMARY KEY, nm_mun TEXT NOT NULL, cd_uf TEXT NOT NULL) WITHOUT ROWID;
             CREATE TABLE setor (cd_setor TEXT PRIMARY KEY, cd_mun TEXT NOT NULL, situacao TEXT, area_km2 REAL, populacao INTEGER) WITHOUT ROWID;
             CREATE TABLE demografia (cd_setor TEXT PRIMARY KEY, moradores INTEGER, homens INTEGER, mulheres INTEGER) WITHOUT ROWID;
         SQL);
-        $db->exec($inserts);
+        DB::unprepared($inserts);
 
+        $this->artisan('migrate', ['--force' => true]);
         $this->prepararBaseCenso();
-
-        if ($usarComoConexao) {
-            config(['database.connections.sqlite.database' => $arquivo]);
-            DB::purge('sqlite');
-        }
-
-        return $arquivo;
     }
 
     protected function prepararBaseCenso(): void
     {
-        self::assertSame(0, Artisan::call('censo:preparar', [
-            '--database' => $this->arquivoBaseCenso,
-            '--skip-validation' => true,
-        ]));
+        $this->seed(ReadModelCensoSeeder::class);
     }
 
     protected function tearDown(): void

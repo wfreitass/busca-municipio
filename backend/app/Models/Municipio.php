@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Município no read model gerado por `censo:preparar` (tabela municipio_resumo). Somente leitura.
+ * Município no read model criado pela migration cria_read_model_do_censo e carregado pelo ReadModelCensoSeeder (tabela municipio_resumo). Somente leitura.
  *
  * @property string $cd_mun
  * @property string $nm_mun

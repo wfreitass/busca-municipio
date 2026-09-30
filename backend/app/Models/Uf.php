@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * UF no read model gerado por `censo:preparar` (tabela uf_resumo). Somente leitura.
+ * UF no read model criado pela migration cria_read_model_do_censo e carregado pelo ReadModelCensoSeeder (tabela uf_resumo). Somente leitura.
  *
  * @property string $cd_uf
  * @property string $sigla
