@@ -2,43 +2,40 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Dados\UfResumo;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RankingUfRequest;
 use App\Http\Resources\ItemRankingResource;
 use App\Http\Resources\UfRefResource;
 use App\Http\Resources\UfResumoResource;
-use App\Queries\UfQuery;
+use App\Models\Uf;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-final class UfController extends Controller
+class UfController extends Controller
 {
-    public function __construct(private readonly UfQuery $query) {}
-
     public function listar(): AnonymousResourceCollection
     {
-        return UfRefResource::collection($this->query->listar());
+        return UfRefResource::collection(Uf::query()->orderBy('nm_uf')->get());
     }
 
-    public function mostrar(string $sigla): UfResumoResource
+    public function mostrar(Uf $uf): UfResumoResource
     {
-        return new UfResumoResource($this->ufOu404($sigla));
+        return new UfResumoResource($uf);
     }
 
-    public function ranking(string $sigla, RankingUfRequest $request): AnonymousResourceCollection
+    public function ranking(Uf $uf, RankingUfRequest $request): AnonymousResourceCollection
     {
-        $pagina = $this->query->ranking($this->ufOu404($sigla), $request->pagina(), $request->porPagina());
+        $pagina = $request->pagina();
+        $porPagina = $request->porPagina();
 
-        return ItemRankingResource::collection($pagina->itens)->additional(['meta' => [
-            'pagina' => $pagina->pagina,
-            'por_pagina' => $pagina->porPagina,
-            'total' => $pagina->total,
-            'total_paginas' => $pagina->totalPaginas(),
+        // forPage em vez de paginate(): mantém o `meta` do contrato e evita um COUNT(*) —
+        // o total já está pré-calculado em uf_resumo.
+        $municipios = $uf->municipios()->consultaveis()->rankingDensidade()->forPage($pagina, $porPagina)->get();
+
+        return ItemRankingResource::collection($municipios)->additional(['meta' => [
+            'pagina' => $pagina,
+            'por_pagina' => $porPagina,
+            'total' => $uf->total_municipios,
+            'total_paginas' => (int) ceil($uf->total_municipios / $porPagina),
         ]]);
-    }
-
-    private function ufOu404(string $sigla): UfResumo
-    {
-        return $this->query->resumo($sigla) ?? abort(404, 'UF não encontrada.');
     }
 }

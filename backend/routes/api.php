@@ -11,9 +11,15 @@ Route::prefix('v1')
     ->middleware('cache.headers:public;max_age=86400;etag')
     ->group(function (): void {
         Route::get('/municipios', [MunicipioController::class, 'buscar']);
-        Route::get('/municipios/{codigo}', [MunicipioController::class, 'mostrar'])->where('codigo', '[0-9]{7}');
+        Route::get('/municipios/{municipio}', [MunicipioController::class, 'mostrar'])
+            ->where('municipio', '[0-9]{7}')
+            ->missing(fn () => abort(404, 'Município não encontrado.'));
 
         Route::get('/ufs', [UfController::class, 'listar']);
-        Route::get('/ufs/{sigla}', [UfController::class, 'mostrar'])->where('sigla', '[A-Za-z]{2}');
-        Route::get('/ufs/{sigla}/municipios', [UfController::class, 'ranking'])->where('sigla', '[A-Za-z]{2}');
+        Route::get('/ufs/{uf}', [UfController::class, 'mostrar'])
+            ->where('uf', '[A-Za-z]{2}')
+            ->missing(fn () => abort(404, 'UF não encontrada.'));
+        Route::get('/ufs/{uf}/municipios', [UfController::class, 'ranking'])
+            ->where('uf', '[A-Za-z]{2}')
+            ->missing(fn () => abort(404, 'UF não encontrada.'));
     });

@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Busca\Fts5MunicipioSearch;
-use App\Busca\MunicipioSearch;
+use App\Busca\BuscaMunicipios;
+use App\Busca\Fts5BuscaMunicipios;
 use App\Console\Commands\PrepararCenso;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
         $this->commands([PrepararCenso::class]);
 
         // Trocar o motor de busca = trocar esta linha.
-        $this->app->bind(MunicipioSearch::class, Fts5MunicipioSearch::class);
+        $this->app->bind(BuscaMunicipios::class, Fts5BuscaMunicipios::class);
     }
 
     /**

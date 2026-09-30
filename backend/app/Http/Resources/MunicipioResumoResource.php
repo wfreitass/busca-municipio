@@ -2,38 +2,38 @@
 
 namespace App\Http\Resources;
 
-use App\Dados\MunicipioResumo;
+use App\Models\Municipio;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @property MunicipioResumo $resource */
-final class MunicipioResumoResource extends JsonResource
+/** @mixin Municipio */
+class MunicipioResumoResource extends JsonResource
 {
     /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
-        $m = $this->resource;
-        $comSexo = $m->homens + $m->mulheres;
+        $comSexo = $this->homens + $this->mulheres;
 
         return [
-            'codigo' => $m->codigo,
-            'nome' => $m->nome,
-            'uf' => new UfRefResource($m->uf),
-            'populacao' => $m->populacao,
-            'area_km2' => round($m->areaKm2, 2),
-            'densidade_hab_km2' => $m->densidade === null ? null : round($m->densidade, 2),
+            'codigo' => $this->cd_mun,
+            'nome' => $this->nm_mun,
+            'uf' => new UfRefResource($this->uf),
+            'populacao' => $this->populacao,
+            'area_km2' => round($this->area_km2, 2),
+            'densidade_hab_km2' => $this->densidade === null ? null : round($this->densidade, 2),
             'setores' => [
-                'total' => $m->setoresTotal,
-                'urbanos' => $m->setoresUrbanos,
-                'rurais' => $m->setoresRurais,
-                'sem_classificacao' => $m->setoresSemClassificacao,
+                'total' => $this->setores_total,
+                'urbanos' => $this->setores_urbanos,
+                'rurais' => $this->setores_rurais,
+                'sem_classificacao' => $this->setores_sem_classificacao,
             ],
             'sexo' => [
-                'homens' => $m->homens,
-                'mulheres' => $m->mulheres,
-                'nao_informado' => $m->sexoNaoInformado,
-                'percentual_homens' => $comSexo > 0 ? round($m->homens / $comSexo * 100, 2) : null,
-                'percentual_mulheres' => $comSexo > 0 ? round($m->mulheres / $comSexo * 100, 2) : null,
+                'homens' => $this->homens,
+                'mulheres' => $this->mulheres,
+                'nao_informado' => $this->sexo_nao_informado,
+                // Percentuais sobre homens + mulheres (a parte "não informada" fica fora da base).
+                'percentual_homens' => $comSexo > 0 ? round($this->homens / $comSexo * 100, 2) : null,
+                'percentual_mulheres' => $comSexo > 0 ? round($this->mulheres / $comSexo * 100, 2) : null,
             ],
         ];
     }

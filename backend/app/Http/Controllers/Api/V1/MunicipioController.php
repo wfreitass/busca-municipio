@@ -2,25 +2,23 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Busca\MunicipioSearch;
+use App\Busca\BuscaMunicipios;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BuscarMunicipiosRequest;
 use App\Http\Resources\MunicipioResumoResource;
 use App\Http\Resources\MunicipioSugestaoResource;
-use App\Queries\MunicipioQuery;
+use App\Models\Municipio;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-final class MunicipioController extends Controller
+class MunicipioController extends Controller
 {
-    public function buscar(BuscarMunicipiosRequest $request, MunicipioSearch $busca): AnonymousResourceCollection
+    public function buscar(BuscarMunicipiosRequest $request, BuscaMunicipios $busca): AnonymousResourceCollection
     {
         return MunicipioSugestaoResource::collection($busca->buscar($request->termo(), $request->limite()));
     }
 
-    public function mostrar(string $codigo, MunicipioQuery $query): MunicipioResumoResource
+    public function mostrar(Municipio $municipio): MunicipioResumoResource
     {
-        $municipio = $query->detalhe($codigo) ?? abort(404, 'Município não encontrado.');
-
         return new MunicipioResumoResource($municipio);
     }
 }

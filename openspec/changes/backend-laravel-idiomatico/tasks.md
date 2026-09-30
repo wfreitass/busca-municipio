@@ -11,8 +11,8 @@
 ## 3. Models
 
 - [x] 3.1 [BACK] Models `Municipio` e `Uf` sobre o read model, com relações, scopes, casts, `@property` e route binding (D1, D2) — commit `feat(backend): models eloquent do read model`
-- [ ] 3.2 [BACK] Controllers com route model binding e `->missing()`, Resources recebendo Models, ranking com `forPage` (D2, D3); remover `app/Queries/` e `app/Dados/` — verificar testes de API e de contrato sem alterar asserções — commit `refactor(backend): api usa models eloquent e route model binding`
-- [ ] 3.3 [BACK] Busca: `BuscaMunicipios` / `Fts5BuscaMunicipios` devolvendo `Collection<Municipio>` (D4) — commit `refactor(backend): busca fts5 devolve models`
+- [x] 3.2 [BACK] Controllers com route model binding e `->missing()`, Resources recebendo Models, ranking com `forPage` (D2, D3); remover `app/Queries/` e `app/Dados/` — verificar testes de API e de contrato sem alterar asserções — commit `refactor(backend): api usa models eloquent e route model binding`
+- [x] 3.3 [BACK] Busca: `BuscaMunicipios` / `Fts5BuscaMunicipios` devolvendo `Collection<Municipio>` (D4) — commit `refactor(backend): busca fts5 devolve models`
 
 ## 4. Documentação e verificação
 
