@@ -38,7 +38,8 @@ A busca MUST ser insensível a caixa, acentos, apóstrofos e hífens, e MUST con
 
 #### Scenario: Apóstrofo e hífen
 - **WHEN** o cliente chama `GET /api/v1/municipios?q=olho d agua`
-- **THEN** os resultados incluem municípios cujo nome é `Alta Floresta D'Oeste - RO`
+- **THEN** os resultados incluem `Olho d'Água - PB` e `Olho d'Água das Flores - AL`
+- **AND** `GET /api/v1/municipios?q=alta floresta d oeste` retorna `Alta Floresta D'Oeste - RO`
 
 #### Scenario: Palavras em qualquer ordem
 - **WHEN** o cliente chama `GET /api/v1/municipios?q=paulo sao`
@@ -46,7 +47,7 @@ A busca MUST ser insensível a caixa, acentos, apóstrofos e hífens, e MUST con
 
 #### Scenario: Termo de duas letras
 - **WHEN** o cliente chama `GET /api/v1/municipios?q=sp`
-- **THEN** recebe `200` com municípios cujo nome normalizado contém `sp` (ex.: `Espigão D'Oeste - RO`)
+- **THEN** recebe `200` e todo item tem `sp` no nome normalizado (ex.: `Vespasiano - MG`, `Gaspar - SC`)
 
 #### Scenario: Sintaxe de busca digitada pelo usuário
 - **WHEN** o cliente chama `GET /api/v1/municipios?q=sao* OR -paulo`
@@ -89,15 +90,15 @@ O sistema SHALL expor `GET /api/v1/municipios/{codigo}` onde `codigo` é o códi
     "populacao": 11451999,
     "area_km2": 1521.2,
     "densidade_hab_km2": 7528.26,
-    "setores": { "total": 27000, "urbanos": 26500, "rurais": 400, "sem_classificacao": 100 },
+    "setores": { "total": 27301, "urbanos": 27037, "rurais": 254, "sem_classificacao": 10 },
     "sexo": {
-      "homens": 5400000, "mulheres": 6000000, "nao_informado": 51999,
-      "percentual_homens": 47.37, "percentual_mulheres": 52.63
+      "homens": 5380188, "mulheres": 6060887, "nao_informado": 10924,
+      "percentual_homens": 47.03, "percentual_mulheres": 52.97
     }
   }
 }
 ```
-(valores ilustrativos; os reais vêm do read model). `area_km2` com 2 casas, `densidade_hab_km2` com 2 casas ou `null`, percentuais com 2 casas ou `null` quando `homens + mulheres = 0`.
+(valores reais de São Paulo no Censo 2022). `area_km2` com 2 casas, `densidade_hab_km2` com 2 casas ou `null`, percentuais com 2 casas ou `null` quando `homens + mulheres = 0`.
 
 #### Scenario: Município existente
 - **WHEN** o cliente chama `GET /api/v1/municipios/3550308`

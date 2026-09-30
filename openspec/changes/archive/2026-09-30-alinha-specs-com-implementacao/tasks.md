@@ -7,4 +7,4 @@
 
 ## 2. Verificação
 
-- [ ] 2.1 [QA] Conferir cada cenário alterado contra a aplicação rodando (clone limpo com `docker compose up` sem imagens em cache; `olho d agua`, `alta floresta d oeste`, `sp` e `GET /api/v1/municipios/3550308` na API)
+- [x] 2.1 [QA] Conferir cada cenário alterado contra a aplicação rodando (clone limpo com `docker compose up` sem imagens em cache; `olho d agua`, `alta floresta d oeste`, `sp` e `GET /api/v1/municipios/3550308` na API)
