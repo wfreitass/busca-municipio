@@ -3,7 +3,7 @@
 ## 1. Specs e documentação
 
 - [x] 1.1 [BA] Deltas de `infraestrutura` e `api-municipios` com os cenários corrigidos a partir da auditoria; verificar `openspec validate --strict` — commit `docs(spec): alinha specs com o comportamento real`
-- [ ] 1.2 [BA] README e `docs/ARQUITETURA.md` com `docker compose up` como comando de subida — commit `docs: subida com docker compose up`
+- [x] 1.2 [BA] README e `docs/ARQUITETURA.md` com `docker compose up` como comando de subida — commit `docs: subida com docker compose up`
 
 ## 2. Verificação
 

@@ -16,12 +16,12 @@ Pré-requisito: apenas **Docker** com **Compose v2**.
 ```bash
 git clone https://github.com/wfreitass/busca-municipio.git
 cd busca-municipio
-docker compose up --build
+docker compose up
 ```
 
 Abra **http://localhost:8080**. Não há nenhum passo manual: dependências, `APP_KEY` e a preparação do banco acontecem no build das imagens. A primeira subida leva alguns minutos (download de imagens e `npm ci`); as seguintes, segundos.
 
-Porta 8080 ocupada? `FRONT_PORT=9090 docker compose up --build`.
+Porta 8080 ocupada? `FRONT_PORT=9090 docker compose up`. Atualizou o código depois de já ter subido uma vez (ex.: `git pull`)? Use `docker compose up --build` para reconstruir as imagens.
 
 Links diretos úteis: [`/municipios/3550308`](http://localhost:8080/municipios/3550308) (São Paulo) · [`/estados/SP?pagina=2`](http://localhost:8080/estados/SP?pagina=2) · [`/estados/RR`](http://localhost:8080/estados/RR).
 

@@ -8,7 +8,7 @@
 **Monorepo com SPA Angular desacoplada e API REST em Laravel idiomático (Models Eloquent, route model binding, API Resources), contrato primeiro (OpenAPI), lendo um _read model_ imutável pré-computado no build da imagem (CQRS-lite).**
 
 ```
-                         docker compose up --build
+                         docker compose up
 ┌───────────────────────────────┐          ┌──────────────────────────────────────────────┐
 │ frontend (nginx:alpine)       │          │ backend (php:8.3-apache + Laravel 12)        │
 │  SPA Angular (2 telas lazy)   │  /api/*  │  Controller → FormRequest → Model → Resource │
