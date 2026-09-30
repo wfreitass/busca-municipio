@@ -35,7 +35,7 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'database' => env('DB_DATABASE', database_path('censo.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => false,
             'busy_timeout' => null,

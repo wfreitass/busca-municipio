@@ -2,7 +2,7 @@
 
 ## 1. Schema e carga
 
-- [ ] 1.1 [BACK] Migration do read model (D1) e caminho único do banco (D4); verificar `php artisan migrate` numa cópia do `censo.sqlite` — commit `feat(backend): migration do read model do censo`
+- [x] 1.1 [BACK] Migration do read model (D1) e caminho único do banco (D4); verificar `php artisan migrate` numa cópia do `censo.sqlite` — commit `feat(backend): migration do read model do censo`
 - [ ] 1.2 [BACK] `config/censo.php`, Action usando `DB`/Models só para carga (D2) e `ReadModelCensoSeeder` chamado pelo `DatabaseSeeder`; remover o comando `censo:preparar` — verificar `php artisan migrate --seed` com os totais do IBGE — commit `refactor(backend): carga do read model via seeder`
 - [ ] 1.3 [BACK] `DB::prohibitDestructiveCommands()` (D3); verificar que `php artisan migrate:fresh` é recusado — commit `feat(backend): bloqueia comandos que apagariam o dado original`
 
